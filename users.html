@@ -134,30 +134,40 @@
     }
 
     async function saveEdit() {
-        const id = document.getElementById('editUserId').value;
-        const data = {
-            nome: document.getElementById('editNome').value.trim(),
-            cognome: document.getElementById('editCognome').value.trim(),
-            role: document.getElementById('editRole').value,
-            codice: document.getElementById('editPin').value.trim()
-        };
+    const id = document.getElementById('editUserId').value;
+    const data = {
+        nome: document.getElementById('editNome').value.trim(),
+        cognome: document.getElementById('editCognome').value.trim(),
+        role: document.getElementById('editRole').value,
+        codice: document.getElementById('editPin').value.trim()
+    };
 
-        // Prima proviamo a creare il nuovo (o aggiornare), poi eliminiamo il vecchio se il server non supporta PUT/PATCH
-        const res = await fetch(USERS_API, { 
+    if (!data.nome || !data.cognome || !data.codice) {
+        alert("Tutti i campi sono obbligatori.");
+        return;
+    }
+
+    // 1. Eliminiamo prima il vecchio record per liberare il PIN
+    const delRes = await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
+
+    if (delRes.ok) {
+        // 2. Ora creiamo il nuovo record
+        const postRes = await fetch(USERS_API, { 
             method: 'POST', 
             headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify(data) 
         });
 
-        if (res.ok) {
-            await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
+        if (postRes.ok) {
             modal.hide();
             loadUsers();
         } else {
-            alert("Errore durante la modifica. Assicurati che il PIN sia unico.");
+            alert("Il vecchio utente è stato rimosso, ma non è stato possibile creare il nuovo. Verifica i dati.");
         }
+    } else {
+        alert("Errore durante la rimozione del vecchio profilo.");
     }
-
+}
     async function deleteUser() {
         if(!confirm("Eliminare definitivamente l'utente?")) return;
         const id = document.getElementById('editUserId').value;
@@ -174,3 +184,4 @@
 </script>
 </body>
 </html>
+
