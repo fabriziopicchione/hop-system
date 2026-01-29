@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); // Serve i tuoi file HTML (index, concierge, deposit, ecc.)
+app.use(express.static('.')); 
 
 // Connessione a MongoDB Atlas
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -19,7 +19,6 @@ mongoose.connect(MONGODB_URI)
 
 // --- SCHEMI E MODELLI ---
 
-// Schema per i bagagli in corso e archivio concierge
 const luggageSchema = new mongoose.Schema({
     guest: String, 
     room: String, 
@@ -34,7 +33,6 @@ const luggageSchema = new mongoose.Schema({
     durata: String
 });
 
-// Schema per il deposito bagagli
 const depositSchema = new mongoose.Schema({
     tag: String, 
     guest: String, 
@@ -50,12 +48,12 @@ const depositSchema = new mongoose.Schema({
     releasePorter: String
 });
 
-// NUOVO: Schema per gli Utenti (Staff)
+// Schema Utenti corretto (campo 'role')
 const userSchema = new mongoose.Schema({
     nome: String,
     cognome: String,
-    codice: String, // Il PIN (es: 2251)
-    ruolo: String
+    codice: String, 
+    role: String
 });
 
 const Luggage = mongoose.model('Luggage', luggageSchema);
@@ -66,7 +64,6 @@ const User = mongoose.model('User', userSchema);
 
 // --- API UTENTI (STAFF) ---
 
-// Prende tutti gli utenti
 app.get('/api/users', async (req, res) => {
     try {
         const users = await User.find();
@@ -76,7 +73,6 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
-// Salva un nuovo utente
 app.post('/api/users', async (req, res) => {
     try {
         const newUser = new User(req.body);
@@ -87,11 +83,10 @@ app.post('/api/users', async (req, res) => {
     }
 });
 
-// Elimina un utente
 app.delete('/api/users/:id', async (req, res) => {
     try {
         await User.findByIdAndDelete(req.params.id);
-        res.json({ message: "Utente rimosso correttamente" });
+        res.json({ message: "Utente rimosso" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -152,12 +147,10 @@ app.post('/api/deposit/release/:id', async (req, res) => {
             };
             await ArchivioDeposit.create(releasedData);
             await Deposit.findByIdAndDelete(req.params.id);
-            res.json({ message: "Riconsegnato e archiviato" });
-        } else {
-            res.status(404).send("Bagaglio non trovato");
+            res.json({ message: "Riconsegnato" });
         }
     } catch (err) {
-        res.status(500).send("Errore durante la riconsegna");
+        res.status(500).send("Errore");
     }
 });
 
