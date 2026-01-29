@@ -33,8 +33,7 @@
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                const activeOnes = data.filter(t => t.status !== 'COMPLETED');
-                renderTickets(activeOnes);
+                renderTickets(data);
                 document.getElementById('last-update').innerText = "Aggiornato: " + new Date().toLocaleTimeString();
             } catch (err) { console.error("Errore fetch:", err); }
         }
@@ -68,21 +67,34 @@
                 const resU = await fetch(USERS_URL);
                 const users = await resU.json();
                 const foundUser = users.find(u => u.codice === pin);
+                
                 if (foundUser || pin === "2251") {
                     const porterName = foundUser ? `${foundUser.nome} ${foundUser.cognome}` : "Admin";
                     const durataMin = Math.round((Date.now() - start) / 60000);
+                    
                     const archiveData = {
                         guest, room, pcs, type: type || 'Standard',
                         status: 'COMPLETED', user: porterName, durata: durataMin + " min",
                         time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
                         deliveryDate: new Date().toISOString().split('T')[0]
                     };
-                    await fetch(ARCHIVE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(archiveData) });
+
+                    await fetch(ARCHIVE_URL, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify(archiveData) 
+                    });
+                    
                     await fetch(API_URL + '/' + id, { method: 'DELETE' });
                     fetchTickets();
-                } else { alert("PIN ERRATO!"); }
-            } catch (err) { alert("Errore durante la chiusura!"); }
+                } else { 
+                    alert("PIN ERRATO!"); 
+                }
+            } catch (err) { 
+                alert("Errore durante la chiusura!"); 
+            }
         }
+
         setInterval(fetchTickets, 8000);
         fetchTickets();
     </script>
