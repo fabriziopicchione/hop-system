@@ -53,7 +53,7 @@
         <div style="text-align:center;"><b>HOP - Rome Cavalieri</b></div>
         <div id="print-content" style="text-align:center;"></div>
         <div id="tag-id-display" style="text-align:center; font-size: 20pt; font-weight: bold; border: 2px solid black; margin: 5px 0;"></div>
-        <div style="text-align:center;"><svg id="barcode"></svg></div>
+        <div style="text-align:center;"><svg id="barcode-svg"></svg></div>
         <div id="print-footer" style="text-align:center; font-size: 8pt; border-top: 1px dashed black;"></div>
     </div>
     <div class="delivery-section">
@@ -90,7 +90,7 @@
                         <span class="guest-name">${t.guest}</span>
                         <div class="mt-2"><span class="type-label">${t.type || 'LUGGAGE'}</span></div>
                         <small class="text-warning d-block">Pezzi: ${t.pcs}</small>
-                        <small class="text-white opacity-50" style="font-size:0.6rem;">ID: ${t.barcode}</small>
+                        <small class="text-white opacity-50" style="font-size:0.9rem; font-weight:bold;">TAG: #${t.barcode || 'N/A'}</small>
                     </div>
                     <div class="btn-group-custom">
                         <button class="btn-c ${isWorking ? 'btn-active' : ''}" onclick="toggleStatus('${t._id}', '${t.status}', '${t.guest}', '${t.room}', '${t.pcs}', '${t.barcode}')">${isWorking ? 'In Corso' : 'In Consegna'}</button>
@@ -109,14 +109,20 @@
     async function toggleStatus(id, currentStatus, guest, room, pcs, barcode) {
         const nextStatus = currentStatus === 'DELIVERING' ? 'PENDING' : 'DELIVERING';
         if(nextStatus === 'DELIVERING') doPrint(barcode, room, guest, pcs);
-        await fetch(`${API_URL}/${id}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: nextStatus }) });
+        
+        await fetch(`${API_URL}/${id}`, { 
+            method: 'PATCH', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ status: nextStatus }) 
+        });
         renderAll();
     }
 
     function doPrint(tagId, room, guest, pcs) {
+        if(!tagId || tagId === 'undefined') return;
         document.getElementById('print-content').innerHTML = `<div style="font-size: 14pt; font-weight: bold;">ROOM: ${room}</div><div style="font-size: 10pt;">${guest}</div><div style="font-size: 9pt;">Pezzi: ${pcs}</div>`;
         document.getElementById('tag-id-display').innerText = tagId;
-        JsBarcode("#barcode", tagId.toString(), { format: "CODE128", width: 1.5, height: 40, displayValue: false, margin: 0 });
+        JsBarcode("#barcode-svg", tagId.toString(), { format: "CODE128", width: 1.5, height: 40, displayValue: false, margin: 0 });
         setTimeout(() => { window.print(); }, 400);
     }
 
