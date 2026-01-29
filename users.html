@@ -86,15 +86,40 @@
     }
 
     async function addUser() {
-        const data = {
-            nome: document.getElementById('userNome').value,
-            cognome: document.getElementById('userCognome').value,
-            role: document.getElementById('userRole').value,
-            codice: document.getElementById('userPin').value
-        };
-        await fetch(USERS_API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        loadUsers();
+    const nome = document.getElementById('userNome').value.trim();
+    const cognome = document.getElementById('userCognome').value.trim();
+    const role = document.getElementById('userRole').value;
+    const codice = document.getElementById('userPin').value.trim();
+
+    // Validazione semplice
+    if (!nome || !cognome || !codice) {
+        alert("Per favore, compila tutti i campi (Nome, Cognome e PIN)");
+        return;
     }
+
+    const data = { nome, cognome, role, codice };
+
+    try {
+        const response = await fetch(USERS_API, { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify(data) 
+        });
+
+        if (response.ok) {
+            // Svuota i campi dopo il salvataggio riuscito
+            document.getElementById('userNome').value = "";
+            document.getElementById('userCognome').value = "";
+            alert("Utente salvato con successo!");
+            loadUsers();
+        } else {
+            alert("Errore del server durante il salvataggio.");
+        }
+    } catch (error) {
+        console.error("Errore di rete:", error);
+        alert("Errore di connessione al server.");
+    }
+}
 
     function openEdit(i) {
         const u = allUsers[i];
