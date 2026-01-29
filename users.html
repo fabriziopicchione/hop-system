@@ -48,14 +48,20 @@
 <div class="modal fade" id="editModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark border-gold text-white" style="border: 1px solid var(--gold);">
-            <div class="modal-header border-secondary"><h5 class="modal-title gold-text">MODIFICA UTENTE</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title gold-text">MODIFICA UTENTE</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
             <div class="modal-body">
                 <input type="hidden" id="editUserId">
                 <div class="mb-3"><label class="small gold-text">NOME</label><input type="text" id="editNome" class="form-control"></div>
                 <div class="mb-3"><label class="small gold-text">COGNOME</label><input type="text" id="editCognome" class="form-control"></div>
                 <div class="mb-3">
                     <label class="small gold-text">RUOLO</label>
-                    <select id="editRole" class="form-select"><option value="BellMan">BellMan</option><option value="Concierge">Concierge</option></select>
+                    <select id="editRole" class="form-select">
+                        <option value="BellMan">BellMan</option>
+                        <option value="Concierge">Concierge</option>
+                    </select>
                 </div>
                 <div class="mb-3"><label class="small gold-text">PIN</label><input type="text" id="editPin" class="form-control" maxlength="4"></div>
             </div>
@@ -79,41 +85,31 @@
             allUsers = await res.json();
             document.getElementById('userTableBody').innerHTML = allUsers.map((u, i) => `
                 <tr>
-                    <td>${u.nome}</td><td>${u.cognome}</td><td><span class="badge-role">${u.role}</span></td>
+                    <td>${u.nome}</td>
+                    <td>${u.cognome}</td>
+                    <td><span class="badge-role">${u.ruolo || u.role}</span></td>
                     <td class="gold-text fw-bold">${u.codice}</td>
                     <td class="text-end"><span class="action-icon" onclick="openEdit(${i})">⚙️</span></td>
                 </tr>`).join('');
-            // Genera un PIN casuale solo se il campo è vuoto
-            if (!document.getElementById('userPin').value) {
-                document.getElementById('userPin').value = Math.floor(1000 + Math.random() * 9000);
-            }
+            document.getElementById('userPin').value = Math.floor(1000 + Math.random() * 9000);
         } catch (err) {
             console.error("Errore caricamento utenti:", err);
         }
     }
 
-   async function addUser() {
-    const nomeInput = document.getElementById('userNome').value.trim();
-    const cognomeInput = document.getElementById('userCognome').value.trim();
-    const pinInput = document.getElementById('userPin').value.trim();
+    async function addUser() {
+        const data = {
+            nome: document.getElementById('userNome').value.trim(),
+            cognome: document.getElementById('userCognome').value.trim(),
+            ruolo: document.getElementById('userRole').value, // Inviato come 'ruolo'
+            codice: document.getElementById('userPin').value.trim()
+        };
 
-    if (!nomeInput || !cognomeInput || !pinInput) {
-        alert("Compila tutti i campi prima di aggiungere.");
-        return;
-    }
+        if (!data.nome || !data.cognome || !data.codice) {
+            alert("Per favore, compila tutti i campi!");
+            return;
+        }
 
-    // Creiamo l'oggetto inviando il PIN in tutti i formati comuni
-    const data = {
-        nome: nomeInput,
-        cognome: cognomeInput,
-        role: document.getElementById('userRole').value,
-        codice: pinInput, // Quello che usi attualmente
-        pin: pinInput     // Alternativa comune nei database
-    };
-
-    console.log("Invio dati al server:", data);
-
-    try {
         const res = await fetch(USERS_API, { 
             method: 'POST', 
             headers: {'Content-Type': 'application/json'}, 
@@ -121,68 +117,54 @@
         });
 
         if (res.ok) {
-            alert("Utente aggiunto con successo!");
             document.getElementById('userNome').value = "";
             document.getElementById('userCognome').value = "";
-            document.getElementById('userPin').value = Math.floor(1000 + Math.random() * 9000);
             loadUsers();
         } else {
-            // Proviamo a leggere il motivo esatto dell'errore dal server
-            const errorDetail = await res.text();
-            console.error("Dettaglio errore server:", errorDetail);
-            alert("Il server ha rifiutato il salvataggio. Controlla la console (F12) per i dettagli.");
+            alert("Errore nel salvataggio utente. Controlla il server.");
         }
-    } catch (err) {
-        alert("Errore di connessione: il server è raggiungibile?");
     }
-}
+
     function openEdit(i) {
         const u = allUsers[i];
         document.getElementById('editUserId').value = u._id;
         document.getElementById('editNome').value = u.nome;
         document.getElementById('editCognome').value = u.cognome;
-        document.getElementById('editRole').value = u.role;
+        document.getElementById('editRole').value = u.ruolo || u.role;
         document.getElementById('editPin').value = u.codice;
         modal.show();
     }
 
     async function saveEdit() {
-    const id = document.getElementById('editUserId').value;
-    const data = {
-        nome: document.getElementById('editNome').value.trim(),
-        cognome: document.getElementById('editCognome').value.trim(),
-        role: document.getElementById('editRole').value,
-        codice: document.getElementById('editPin').value.trim()
-    };
+        const id = document.getElementById('editUserId').value;
+        const data = {
+            nome: document.getElementById('editNome').value.trim(),
+            cognome: document.getElementById('editCognome').value.trim(),
+            ruolo: document.getElementById('editRole').value,
+            codice: document.getElementById('editPin').value.trim()
+        };
 
-    if (!data.nome || !data.cognome || !data.codice) {
-        alert("Tutti i campi sono obbligatori.");
-        return;
-    }
-
-    // 1. Eliminiamo prima il vecchio record per liberare il PIN
-    const delRes = await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
-
-    if (delRes.ok) {
-        // 2. Ora creiamo il nuovo record
-        const postRes = await fetch(USERS_API, { 
-            method: 'POST', 
-            headers: {'Content-Type': 'application/json'}, 
-            body: JSON.stringify(data) 
-        });
-
-        if (postRes.ok) {
-            modal.hide();
-            loadUsers();
+        // Elimina vecchio e crea nuovo (logica per server senza PUT)
+        const delRes = await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
+        if (delRes.ok) {
+            const addRes = await fetch(USERS_API, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(data) 
+            });
+            if (addRes.ok) {
+                modal.hide();
+                loadUsers();
+            } else {
+                alert("Errore nel ricreare l'utente.");
+            }
         } else {
-            alert("Il vecchio utente è stato rimosso, ma non è stato possibile creare il nuovo. Verifica i dati.");
+            alert("Errore nella modifica.");
         }
-    } else {
-        alert("Errore durante la rimozione del vecchio profilo.");
     }
-}
+
     async function deleteUser() {
-        if(!confirm("Eliminare definitivamente l'utente?")) return;
+        if (!confirm("Sei sicuro di voler eliminare questo utente?")) return;
         const id = document.getElementById('editUserId').value;
         const res = await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
         if (res.ok) {
@@ -197,5 +179,3 @@
 </script>
 </body>
 </html>
-
-
