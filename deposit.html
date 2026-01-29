@@ -7,29 +7,18 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { 
-            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.jpg') no-repeat center center fixed; 
-            background-size: cover; color: #c5a059; font-family: 'Times New Roman', serif; 
-            min-height: 100vh; margin: 0; padding-bottom: 50px; 
-        }
-        
+        body { background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.jpg') no-repeat center center fixed; background-size: cover; color: #c5a059; font-family: 'Times New Roman', serif; min-height: 100vh; margin: 0; padding-bottom: 50px; }
         .card-custom { background: rgba(0, 0, 0, 0.85); border: 1px solid #c5a059; border-radius: 15px; padding: 2rem; }
         .section-title { color: #c5a059; letter-spacing: 3px; font-size: 1.2rem; border-bottom: 1px solid #c5a059; padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase; text-align: center; }
-        
         .form-control, .form-select { background: rgba(255, 255, 255, 0.9); border: 1px solid #c5a059; color: #000; font-weight: bold; }
-        
         .gold-btn { background-color: #c5a059; color: black; border: 2px solid #c5a059; font-weight: bold; letter-spacing: 2px; transition: all 0.3s ease; width: 100%; padding: 10px; }
         .gold-btn:hover { background-color: #856404; border-color: #856404; color: white; }
-
         .table-dark-custom { background: rgba(0,0,0,0.7); color: white; border-radius: 10px; overflow: hidden; font-size: 0.9rem; }
         .table-dark-custom th { background: #c5a059; color: black; text-transform: uppercase; letter-spacing: 1px; }
         .table-dark-custom td { vertical-align: middle; border-color: rgba(197, 160, 89, 0.2); }
-
         .badge-outline-gold { border: 1px solid #c5a059; color: #c5a059; background: transparent; padding: 5px 10px; }
         .btn-action { background: transparent; border: 1px solid #c5a059; color: #c5a059; padding: 5px 15px; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
         .btn-action:hover { background: #c5a059; color: black; }
-        
-        .history-section { margin-top: 30px; border-top: 1px solid #c5a059; padding-top: 20px; }
     </style>
 </head>
 <body>
@@ -98,27 +87,6 @@
                     </table>
                 </div>
             </div>
-
-            <div class="history-section">
-                <button class="btn btn-outline-secondary btn-sm w-100 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory" onclick="renderHistory()">
-                    MOSTRA STORICO RICONSEGNE OGGI
-                </button>
-                <div class="collapse" id="collapseHistory">
-                    <div class="card card-custom" style="background: rgba(0,0,0,0.6);">
-                        <table class="table table-dark-custom table-sm" style="font-size: 0.8rem;">
-                            <thead>
-                                <tr>
-                                    <th>TAG</th>
-                                    <th>OSPITE</th>
-                                    <th>DATA RICONSEGNA</th>
-                                    <th>PORTER</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -127,22 +95,21 @@
     const API_URL = '/api/deposit';
     const USERS_URL = '/api/users';
 
-    // RENDERING GIACENZE
     async function renderDeposit() {
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
             const tbody = document.getElementById('deposit-body');
-            if(!tbody) return;
-
+            
+            // CORREZIONE: Inserimento dinamico dei dati nella tabella
             tbody.innerHTML = data.reverse().map(item => `
                 <tr>
-                    <td class="fw-bold" style="color: #c5a059;">#${item.tag || '---'}</td>
-                    <td>${item.guest || '---'}</td>
-                    <td>${item.pcs || '1'}</td>
-                    <td><span class="badge badge-outline-gold">${item.location || 'B-ROOM'}</span></td>
+                    <td class="fw-bold" style="color: #c5a059;">#${item.tag}</td>
+                    <td>${item.guest}</td>
+                    <td>${item.pcs}</td>
+                    <td><span class="badge badge-outline-gold">${item.location}</span></td>
                     <td class="small text-white-50">${item.notes || ''}</td>
-                    <td>${item.time || ''}</td>
+                    <td>${item.time}</td>
                     <td class="text-end">
                         <button class="btn-action" onclick="releaseItem('${item._id}')">
                             <i class="fas fa-check-circle me-1"></i> ESITO
@@ -153,18 +120,15 @@
         } catch (err) { console.error("Errore rendering:", err); }
     }
 
-    // AGGIUNTA NUOVO DEPOSITO
     document.getElementById('depositForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const pin = prompt("Inserisci PIN Porter per confermare l'ingresso:");
+        const pin = prompt("Inserisci PIN Porter:");
         if(!pin) return;
-
         try {
             const resU = await fetch(USERS_URL);
             const users = await resU.json();
             const u = users.find(user => user.codice === pin);
             let porter = (pin === "2251") ? "Admin" : (u ? `${u.nome} ${u.cognome}` : "");
-
             if (!porter) { alert("PIN ERRATO"); return; }
 
             const item = {
@@ -177,50 +141,35 @@
                 date: new Date().toLocaleDateString('it-IT'),
                 time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
             };
-
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(item)
-            });
-
-            this.reset(); 
-            document.getElementById('depPcs').value = 1; 
-            document.getElementById('depTag').focus();
+            await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(item) });
+            this.reset(); document.getElementById('depPcs').value = 1; document.getElementById('depTag').focus();
             renderDeposit();
-        } catch (err) { alert("Errore durante il salvataggio"); }
+        } catch (err) { alert("Errore"); }
     });
 
-    // RICONSEGNA
     async function releaseItem(id) {
-        const code = prompt("RICONSEGNA - Inserisci PIN Porter:");
+        const code = prompt("Invia a Riconsegnati - Inserisci PIN Porter:");
         if(!code) return;
-
         try {
             const resU = await fetch(USERS_URL);
             const users = await resU.json();
             const u = users.find(user => user.codice === code);
             let releasePorter = (code === "2251") ? "Admin" : (u ? `${u.nome} ${u.cognome}` : "");
-
             if (!releasePorter) { alert("PIN ERRATO"); return; }
 
-            if(confirm(`Confermi la riconsegna effettivamente svolta da ${releasePorter}?`)) {
-                const response = await fetch(`${API_URL}/release/${id}`, { 
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ releasePorter })
+            if(confirm(`Confermi la riconsegna effettiva?`)) {
+                await fetch(`${API_URL}/release/${id}`, { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ releasePorter }) 
                 });
-                
-                if(response.ok) {
-                    renderDeposit();
-                }
+                renderDeposit();
             }
-        } catch (e) { alert("Errore durante la riconsegna"); }
+        } catch (e) { alert("Errore"); }
     }
 
     setInterval(renderDeposit, 5000);
     renderDeposit();
 </script>
-
 </body>
 </html>
