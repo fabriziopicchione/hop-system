@@ -7,84 +7,150 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.jpg') no-repeat center center fixed; background-size: cover; color: #c5a059; font-family: 'Times New Roman', serif; min-height: 100vh; margin: 0; padding-bottom: 50px; }
+        body { 
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.jpg') no-repeat center center fixed; 
+            background-size: cover; color: #c5a059; font-family: 'Times New Roman', serif; 
+            min-height: 100vh; margin: 0; padding-bottom: 50px; 
+        }
+        
         .card-custom { background: rgba(0, 0, 0, 0.85); border: 1px solid #c5a059; border-radius: 15px; padding: 2rem; }
-        .section-title { color: #c5a059; letter-spacing: 3px; font-size: 1.2rem; border-bottom: 1px solid #c5a059; padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase; text-align: center; }
-        .form-control, .form-select { background: rgba(255, 255, 255, 0.9); border: 1px solid #c5a059; color: #000; font-weight: bold; }
-        .gold-btn { background-color: #c5a059; color: black; border: 2px solid #c5a059; font-weight: bold; letter-spacing: 2px; transition: all 0.3s ease; width: 100%; padding: 10px; }
+        .section-title { color: #c5a059; letter-spacing: 3px; font-size: 1.2rem; border-bottom: 1px solid #c5a059; padding-bottom: 15px; margin-bottom: 25px; text-transform: uppercase; text-align: center; }
+
+        .form-control, .form-select { background: rgba(255, 255, 255, 0.95); border: 1px solid #c5a059; color: #000; font-weight: bold; }
+        .form-control:focus, .form-select:focus { background: #fff; border-color: #ffc107; box-shadow: 0 0 8px rgba(197, 160, 89, 0.5); }
+        
+        .gold-btn { background-color: #c5a059; color: black; border: 2px solid #c5a059; font-weight: bold; letter-spacing: 2px; transition: all 0.3s ease; }
         .gold-btn:hover { background-color: #856404; border-color: #856404; color: white; }
-        .table-dark-custom { background: rgba(0,0,0,0.7); color: white; border-radius: 10px; overflow: hidden; font-size: 0.9rem; }
-        .table-dark-custom th { background: #c5a059; color: black; text-transform: uppercase; letter-spacing: 1px; }
-        .table-dark-custom td { vertical-align: middle; border-color: rgba(197, 160, 89, 0.2); }
-        .badge-outline-gold { border: 1px solid #c5a059; color: #c5a059; background: transparent; padding: 5px 10px; }
-        .btn-action { background: transparent; border: 1px solid #c5a059; color: #c5a059; padding: 5px 15px; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
-        .btn-action:hover { background: #c5a059; color: black; }
+
+        .deposit-section { background: rgba(10, 10, 10, 0.95); border: 1px solid #c5a059; border-radius: 12px; padding: 20px; }
+        .table-deposit { width: 100%; color: white; font-size: 0.85rem; table-layout: fixed; border-collapse: collapse; }
+        .table-deposit th { background: #c5a059; color: black; padding: 10px; text-transform: uppercase; font-size: 0.75rem; text-align: center; border: 1px solid rgba(0,0,0,0.1); }
+        .table-deposit td { padding: 10px; border-bottom: 1px solid rgba(197, 160, 89, 0.2); vertical-align: middle; text-align: center; overflow: hidden; }
+
+        .w-time { width: 90px; }
+        .w-tag { width: 100px; }
+        .w-guest { width: 180px; text-align: left !important; }
+        .w-pcs { width: 50px; }
+        .w-pos { width: 130px; }
+        .w-note { width: 180px; }
+        .w-porter { width: 140px; }
+        .w-action { width: 110px; }
+
+        .tag-badge { background: #000; color: #fff; border: 1px solid #c5a059; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 0.8rem; }
+        .tag-location { background: #333; color: #ffc107; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffc107; font-size: 0.7rem; font-weight: bold; }
+        
+        .note-container { 
+            white-space: nowrap; 
+            text-overflow: ellipsis; 
+            overflow: hidden; 
+            display: block; 
+            color: #ccc; 
+            font-style: italic; 
+            cursor: help;
+        }
+        .note-container:hover { color: #ffc107; white-space: normal; overflow: visible; background: rgba(0,0,0,0.9); position: relative; z-index: 10; border-radius: 4px; }
+
+        .btn-release { background: transparent; border: 1px solid #198754; color: #198754; padding: 3px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; transition: 0.3s; width: 100%; }
+        .btn-release:hover { background: #198754; color: white; }
     </style>
 </head>
 <body>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="index.html" style="color: #c5a059; text-decoration: none; font-weight: bold;">← HOME</a>
-        <h2 style="letter-spacing: 4px;">STORAGE MANAGEMENT</h2>
-        <div></div>
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+        <div class="d-flex align-items-center">
+            <img src="logo-hop.png" alt="Logo" style="height: 40px; margin-right: 15px;">
+            <h2 class="m-0" style="letter-spacing: 4px; font-weight: 300;">H.O.P. DEPOSITORY</h2>
+        </div>
+        <a href="concierge.html" class="btn btn-outline-warning fw-bold px-4">← TORNA AL CONCIERGE</a>
     </div>
 
     <div class="row g-4">
-        <div class="col-lg-4">
-            <div class="card card-custom">
-                <h5 class="section-title">Nuovo Deposito</h5>
-                <form id="depositForm">
-                    <div class="mb-3">
-                        <label class="small text-white-50">TAG NUMBER</label>
-                        <input type="text" id="depTag" class="form-control" required autofocus>
+        <div class="col-xl-3">
+            <div class="card-custom shadow-lg">
+                <h5 class="section-title">Nuovo Ingresso</h5>
+                <form id="depositForm" class="row g-3">
+                    <div class="col-8">
+                        <label class="small text-white-50">TAG (Scan)</label>
+                        <input type="text" id="depTag" class="form-control" placeholder="Barcode..." required autofocus>
                     </div>
-                    <div class="mb-3">
+                    <div class="col-4">
+                        <label class="small text-white-50">COLLI</label>
+                        <input type="number" id="depPcs" class="form-control" value="1" min="1">
+                    </div>
+                    <div class="col-12">
                         <label class="small text-white-50">NOME OSPITE</label>
                         <input type="text" id="depGuest" class="form-control" required>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="small text-white-50">COLLI</label>
-                            <input type="number" id="depPcs" class="form-control" value="1" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="small text-white-50">UBICAZIONE</label>
-                            <select id="depLocation" class="form-select">
-                                <option value="B-ROOM">B-ROOM</option>
-                                <option value="LONG-TERM">LONG-TERM</option>
-                                <option value="OFFICE">OFFICE</option>
-                            </select>
-                        </div>
+                    <div class="col-12">
+                        <label class="small text-white-50">POSIZIONE</label>
+                        <select id="depLoc" class="form-select" required>
+                            <option value="" disabled selected>Seleziona...</option>
+                            <option value="BACK CONCIERGE">BACK CONCIERGE</option>
+                            <option value="DEPOSITO 1">DEPOSITO 1</option>
+                            <option value="DEPOSITO 2">DEPOSITO 2</option>
+                        </select>
                     </div>
-                    <div class="mb-4">
-                        <label class="small text-white-50">NOTE / DETTAGLI</label>
-                        <input type="text" id="depNotes" class="form-control" placeholder="es. Fragile, Rosso...">
+                    <div class="col-12">
+                        <label class="small text-white-50">NOTE</label>
+                        <textarea id="depNotes" class="form-control" rows="2" placeholder="Note facoltative..."></textarea>
                     </div>
-                    <button type="submit" class="btn gold-btn">REGISTRA DEPOSITO</button>
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn gold-btn w-100 p-3">ARCHIVIA</button>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <div class="col-lg-8">
-            <div class="card card-custom">
-                <h5 class="section-title">Giacenze Attuali</h5>
+        <div class="col-xl-9">
+            <div class="deposit-section shadow-lg">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0 text-white"><i class="fas fa-boxes me-2 text-warning"></i>GIACENZA ATTUALE</h5>
+                    <input type="text" id="searchDep" class="form-control form-control-sm border-warning bg-dark text-white" style="width: 250px;" placeholder="Cerca..." onkeyup="renderDeposit()">
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-dark-custom">
+                    <table class="table-deposit">
                         <thead>
                             <tr>
-                                <th>TAG</th>
-                                <th>OSPITE</th>
-                                <th>PCS</th>
-                                <th>LOCATION</th>
-                                <th>NOTE</th>
-                                <th>ORA</th>
-                                <th class="text-end">AZIONE</th>
+                                <th class="w-time">ORA</th>
+                                <th class="w-tag">TAG</th>
+                                <th class="w-guest">GUEST</th>
+                                <th class="w-pcs">PCS</th>
+                                <th class="w-pos">POSIZIONE</th>
+                                <th class="w-note">NOTE</th>
+                                <th class="w-porter">PORTER</th>
+                                <th class="w-action">AZIONE</th>
                             </tr>
                         </thead>
-                        <tbody id="deposit-body">
-                            </tbody>
+                        <tbody id="deposit-body"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-outline-success fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory" onclick="renderHistory()">
+                    <i class="fas fa-history me-2"></i> MOSTRA RICONSEGNE RECENTI
+                </button>
+            </div>
+
+            <div class="collapse mt-4" id="collapseHistory">
+                <div class="deposit-section shadow-lg" style="border-color: #198754; background: rgba(0, 20, 0, 0.9);">
+                    <h5 class="section-title" style="color: #28a745; border-color: #28a745;">Archivio Riconsegne (Ultime 50)</h5>
+                    <div class="table-responsive">
+                        <table class="table-deposit">
+                            <thead>
+                                <tr>
+                                    <th style="background: #198754; width: 180px;">GUEST</th>
+                                    <th style="background: #198754; width: 100px;">TAG</th>
+                                    <th style="background: #198754; width: 130px;">INGRESSO</th>
+                                    <th style="background: #198754; width: 130px;">RICONSEGNA</th>
+                                    <th style="background: #198754; width: 140px;">PORTER IN</th>
+                                    <th style="background: #198754; width: 140px;">PORTER OUT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -92,80 +158,116 @@
 </div>
 
 <script>
-    const API_URL = '/api/deposit';
+    const DEPOSIT_URL = '/api/deposit';
     const USERS_URL = '/api/users';
 
     async function renderDeposit() {
         try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            const tbody = document.getElementById('deposit-body');
-            
-            // CORREZIONE: Inserimento dinamico dei dati nella tabella
-            tbody.innerHTML = data.reverse().map(item => `
+            const res = await fetch(DEPOSIT_URL);
+            let data = await res.json();
+            const search = document.getElementById('searchDep').value.toLowerCase();
+            if(search) data = data.filter(i => i.guest.toLowerCase().includes(search) || (i.tag && i.tag.toLowerCase().includes(search)));
+
+            document.getElementById('deposit-body').innerHTML = data.reverse().map(i => `
                 <tr>
-                    <td class="fw-bold" style="color: #c5a059;">#${item.tag}</td>
-                    <td>${item.guest}</td>
-                    <td>${item.pcs}</td>
-                    <td><span class="badge badge-outline-gold">${item.location}</span></td>
-                    <td class="small text-white-50">${item.notes || ''}</td>
-                    <td>${item.time}</td>
-                    <td class="text-end">
-                        <button class="btn-action" onclick="releaseItem('${item._id}')">
-                            <i class="fas fa-check-circle me-1"></i> ESITO
-                        </button>
+                    <td class="w-time">${i.date}<br><small class="text-white-50">${i.time}</small></td>
+                    <td class="w-tag"><span class="tag-badge">${i.tag || '---'}</span></td>
+                    <td class="w-guest fw-bold text-uppercase">${i.guest}</td>
+                    <td class="w-pcs"><span class="badge bg-warning text-dark">${i.pcs}</span></td>
+                    <td class="w-pos"><span class="tag-location">${i.location}</span></td>
+                    <td class="w-note"><span class="note-container" title="${i.notes || ''}">${i.notes || '---'}</span></td>
+                    <td class="w-porter small fw-bold" style="color: #c5a059;">${i.user || 'N/D'}</td>
+                    <td class="w-action text-end">
+                        <button class="btn-release" onclick="releaseItem(${i.id})">RICONSEGNA</button>
                     </td>
                 </tr>
             `).join('');
-        } catch (err) { console.error("Errore rendering:", err); }
+        } catch (e) { console.error("Errore"); }
+    }
+
+    async function renderHistory() {
+        try {
+            const res = await fetch('/api/deposit-history');
+            const data = await res.json();
+            document.getElementById('history-body').innerHTML = data.reverse().slice(0, 50).map(i => `
+                <tr>
+                    <td class="fw-bold text-uppercase text-white text-start">${i.guest}</td>
+                    <td><span class="tag-badge" style="border-color: #198754;">${i.tag || '---'}</span></td>
+                    <td class="small">${i.date}<br><span class="text-white-50">${i.time}</span></td>
+                    <td class="small text-success fw-bold">${i.releaseDate}<br>${i.releaseTime}</td>
+                    <td class="small">${i.user}</td>
+                    <td class="small fw-bold" style="color: #ffc107;">${i.releasePorter}</td>
+                </tr>
+            `).join('');
+        } catch (e) { console.error("Errore storico"); }
     }
 
     document.getElementById('depositForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const pin = prompt("Inserisci PIN Porter:");
-        if(!pin) return;
+        const code = prompt("IDENTIFICAZIONE - PIN Porter:");
+        if(!code) return;
+
         try {
             const resU = await fetch(USERS_URL);
             const users = await resU.json();
-            const u = users.find(user => user.codice === pin);
-            let porter = (pin === "2251") ? "Admin" : (u ? `${u.nome} ${u.cognome}` : "");
-            if (!porter) { alert("PIN ERRATO"); return; }
+            const u = users.find(user => user.codice === code);
+            
+            let fullPorterName = "";
+            if (code === "2251") fullPorterName = "Admin";
+            else if (u) fullPorterName = `${u.nome} ${u.cognome}`;
+            else { alert("PIN ERRATO"); return; }
 
             const item = {
                 tag: document.getElementById('depTag').value,
                 guest: document.getElementById('depGuest').value,
                 pcs: document.getElementById('depPcs').value,
-                location: document.getElementById('depLocation').value,
+                location: document.getElementById('depLoc').value,
                 notes: document.getElementById('depNotes').value,
-                user: porter,
+                user: fullPorterName,
                 date: new Date().toLocaleDateString('it-IT'),
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                timestamp: Date.now(),
+                id: Date.now()
             };
-            await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(item) });
+
+            await fetch(DEPOSIT_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(item)
+            });
+            
             this.reset(); document.getElementById('depPcs').value = 1; document.getElementById('depTag').focus();
             renderDeposit();
         } catch (err) { alert("Errore"); }
     });
 
     async function releaseItem(id) {
-        const code = prompt("Invia a Riconsegnati - Inserisci PIN Porter:");
+        const code = prompt("RICONSEGNA - Inserisci PIN Porter:");
         if(!code) return;
+
         try {
             const resU = await fetch(USERS_URL);
             const users = await resU.json();
             const u = users.find(user => user.codice === code);
             let releasePorter = (code === "2251") ? "Admin" : (u ? `${u.nome} ${u.cognome}` : "");
+
             if (!releasePorter) { alert("PIN ERRATO"); return; }
 
-            if(confirm(`Confermi la riconsegna effettiva?`)) {
-                await fetch(`${API_URL}/release/${id}`, { 
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify({ releasePorter }) 
+            if(confirm(`Confermi la riconsegna del bagaglio effettuata da ${releasePorter}?`)) {
+                const response = await fetch(`/api/deposit/release/${id}`, { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ releasePorter })
                 });
-                renderDeposit();
+                
+                if(response.ok) {
+                    renderDeposit();
+                    if (document.getElementById('collapseHistory').classList.contains('show')) {
+                        renderHistory();
+                    }
+                }
             }
-        } catch (e) { alert("Errore"); }
+        } catch (e) { alert("Errore durante la riconsegna"); }
     }
 
     setInterval(renderDeposit, 5000);
