@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PORTER MOBILE - H.O.P.</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --dark: #121212; --card-bg: #1a1a1a; }
+        body { 
+            background-color: var(--dark); color: var(--gold); 
+            font-family: 'Segoe UI', Roboto, sans-serif; padding: 10px;
+        }
+        .header-mobile {
+            text-align: center; border-bottom: 2px solid var(--gold);
+            padding-bottom: 10px; margin-bottom: 20px;
+        }
+        .ticket-card {
+            background: var(--card-bg); border: 1px solid var(--gold);
+            border-radius: 15px; padding: 20px; margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .room-badge {
+            font-size: 2.2rem; font-weight: 900; color: white;
+            display: block; line-height: 1;
+        }
+        .info-row { font-size: 1.1rem; color: #ddd; margin-top: 5px; }
+        .btn-delivery {
+            background-color: var(--gold); color: black;
+            font-weight: bold; font-size: 1.3rem; border: none;
+            padding: 18px; border-radius: 10px; width: 100%;
+            margin-top: 15px; text-transform: uppercase;
+        }
+        .btn-delivery:active { background-color: #a38448; transform: scale(0.98); }
+        .empty-state { text-align: center; margin-top: 50px; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <div class="header-mobile">
+        <h2 style="margin:0; letter-spacing: 2px;">PORTER H.O.P.</h2>
+        <small id="last-update">Aggiornato: ora</small>
+    </div>
+
+    <div id="porter-list">
+        <div class="empty-state">Caricamento in corso...</div>
+    </div>
+
+    <script>
+        const API_URL = '/api/luggage';
+        const ARCHIVE_URL = '/api/archivio-dedicato';
+        const USERS_URL = '/api/users';
+
+        async function fetchTickets() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                
+                // Filtriamo solo i bagagli che non sono ancora completati
+                const activeOnes = data.filter(t => t.status !== 'COMPLETED');
+                renderTickets(activeOnes);
+                
+                document.getElementById('last-update').innerText = "Aggiornato: " + new Date().toLocaleTimeString();
+            } catch (err) {
+                console.error("Errore fetch:", err);
+            }
+        }
+
+        function renderTickets(tickets) {
+            const container = document.getElementById('porter-list');
+            if (tickets.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>Ottimo lavoro!</h3><p>Nessuna consegna in attesa.</p></div>';
+                return;
+            }
+
+            container.innerHTML = tickets.map(t => `
+                <div class="ticket-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="room-badge">RM ${t.room}</span>
+                            <div class="info-row"><strong>Ospite:</strong> ${t.guest}</div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-warning text-dark fs-5">${t.pcs} PZ</span>
+                        </div>
+                    </div>
+                    <div class="info-row" style="font-size: 0.9rem;">Tipo: ${t.type || 'Standard'} | Inserito: ${t.time}</div>
+                    
+                    <button onclick="completeDelivery('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}', ${t.start}, '${t.type}')" 
+                            class="btn-delivery">
+                        CONSEGNA EFFETTUATA
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function completeDelivery(id, guest, room, pcs, start, type) {
+            const pin = prompt("Inserisci il tuo PIN:");
+            if (!pin) return;
+
+            try {
+                const resU = await fetch(USERS_URL);
+                const users = await resU.json();
+                const foundUser = users.find(u => u.codice === pin);
+
+                if (foundUser || pin === "2251") {
+                    const porterName = foundUser ? `${foundUser.nome} ${foundUser.cognome}` : "Admin";
+                    
+                    const archiveData = {
+                        guest, room, pcs, type,
+                        status: 'COMPLETED',
+                        user: porterName,
+                        durata: Math.round((Date.now() - start) / 60000) + " min",
+                        time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                        deliveryDate: new Date().toISOString().split('T')[0]
+                    };
+
+                    // 1. Salva in Archivio
+                    await fetch(ARCHIVE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(archiveData)
+                    });
+
+                    // 2. Elimina dalla lista attiva
+                    await fetch(\`\${API_URL}/\${id}\`, { method: 'DELETE' });
+
+                    alert("Consegna registrata!");
+                    fetchTickets(); // Ricarica subito
+                } else {
+                    alert("PIN ERRATO!");
+                }
+            } catch (err) {
+                alert("Errore durante la chiusura!");
+            }
+        }
+
+        // Controlla nuovi bagagli ogni 8 secondi
+        setInterval(fetchTickets, 8000);
+        fetchTickets();
+    </script>
+</body>
+</html>
