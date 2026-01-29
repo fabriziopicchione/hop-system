@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Archivio e Statistiche - Rome Cavalieri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --gold: #c5a059; --dark-gold: #856404; }
+        
+        body { 
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.jpg') no-repeat center center fixed; 
+            background-size: cover; 
+            color: #ffffff; 
+            font-family: 'Times New Roman', serif; 
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .gold-text { color: var(--gold); letter-spacing: 2px; }
+
+        .stat-card { 
+            background: rgba(0, 0, 0, 0.85); 
+            border: 1px solid var(--gold); 
+            padding: 20px; 
+            text-align: center;
+            border-radius: 12px;
+            height: 140px; /* Altezza fissa per uniformità */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .stat-number { font-size: 2.2rem; font-weight: bold; color: var(--gold); line-height: 1; }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; font-weight: bold; margin-top: 5px; }
+        
+        .table-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid var(--gold);
+            margin-top: 20px;
+        }
+        
+        .scroll-wrapper {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+
+        .table { color: #000 !important; font-size: 0.9rem; margin-bottom: 0; width: 100%; }
+        .table thead th { 
+            background: #f8f9fa; 
+            color: var(--dark-gold); 
+            border-bottom: 2px solid var(--gold); 
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .search-tool {
+            display: flex;
+            background: #ffffff;
+            padding: 2px;
+            border-radius: 8px;
+            border: 2px solid var(--gold);
+        }
+
+        .form-select-custom {
+            border: none !important;
+            border-right: 2px solid var(--gold) !important;
+            font-weight: bold;
+            width: 130px;
+        }
+
+        .chart-bar { background: var(--gold); height: 5px; border-radius: 3px; margin-top: 3px; }
+        .top-staff-row { font-size: 0.75rem; color: white; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+        <div class="d-flex align-items-center">
+            <img src="logo-hop.png" alt="Logo" style="height: 45px; margin-right: 15px;">
+            <h2 class="m-0 gold-text" style="font-weight: 300; letter-spacing: 4px;">H.O.P. ARCHIVIO</h2>
+        </div>
+        <div class="d-flex gap-3 align-items-center">
+            <input type="date" id="filterDate" class="form-control form-control-sm" style="width: 150px;" onchange="loadData()">
+            <a href="concierge.html" class="btn btn-outline-warning btn-sm px-4 fw-bold">Torna al Concierge</a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-lg">
+                <div class="stat-number" id="stat-total">0</div>
+                <div class="stat-label">Consegne Totali</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-lg">
+                <div class="stat-number" id="stat-pieces">0</div>
+                <div class="stat-label">Bagagli Gestiti</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-lg">
+                <div class="stat-number" id="stat-avg-time">0 min</div>
+                <div class="stat-label">Tempo Medio</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-lg">
+                <div id="staff-stats"></div>
+                <div class="stat-label">Top Performers</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container shadow-lg">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="m-0" style="color: var(--dark-gold); font-weight: bold;">LOG STORICO</h5>
+            <div class="search-tool">
+                <select id="searchField" class="form-select form-select-sm form-select-custom">
+                    <option value="guest">OSPITE</option>
+                    <option value="room">CAMERA</option>
+                    <option value="user">PORTER</option>
+                </select>
+                <input type="text" id="searchInput" class="form-control border-0" placeholder="Cerca..." onkeyup="filterTable()">
+            </div>
+        </div>
+
+        <div class="scroll-wrapper">
+            <table class="table table-hover" id="archiveTable">
+                <thead>
+                    <tr>
+                        <th>DATA</th><th>ORARIO</th><th>OSPITE</th><th>CAMERA</th><th>TIPO</th><th>PCS</th><th>DURATA</th><th>PORTER</th>
+                    </tr>
+                </thead>
+                <tbody id="archive-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ARCHIVE_URL = '/api/archivio-dedicato';
+    let fullDataCache = []; 
+
+    async function loadData() {
+        const filterVal = document.getElementById('filterDate').value;
+        try {
+            const response = await fetch(ARCHIVE_URL);
+            let data = await response.json();
+            if(filterVal) data = data.filter(i => i.deliveryDate === filterVal);
+            fullDataCache = data;
+            renderStats(data);
+            renderTable(data);
+        } catch (e) { console.error("Errore"); }
+    }
+
+    function renderStats(data) {
+        // 1. Totali
+        document.getElementById('stat-total').innerText = data.length;
+
+        // 2. Bagagli
+        const totalPieces = data.reduce((sum, item) => {
+            const val = parseInt(item.pcs);
+            return sum + (isNaN(val) ? 1 : val);
+        }, 0);
+        document.getElementById('stat-pieces').innerText = totalPieces;
+
+        // 3. Tempo Medio (Logica Corretta)
+        let totalMinutes = 0;
+        let deliveriesWithTime = 0;
+        data.forEach(item => {
+            if (item.durata) {
+                const mins = parseInt(item.durata.toString().replace(/[^0-9]/g, ''));
+                if (!isNaN(mins) && mins > 0) {
+                    totalMinutes += mins;
+                    deliveriesWithTime++;
+                }
+            }
+        });
+        const avgDisplay = document.getElementById('stat-avg-time');
+        if (deliveriesWithTime > 0) {
+            const avg = Math.round(totalMinutes / deliveriesWithTime);
+            avgDisplay.innerText = avg + " min";
+            avgDisplay.style.color = avg > 15 ? "#ffc107" : "var(--gold)";
+        } else {
+            avgDisplay.innerText = "0 min";
+        }
+
+        // 4. Staff
+        const staffMap = {};
+        data.forEach(item => { if(item.user) staffMap[item.user] = (staffMap[item.user] || 0) + 1; });
+        const sortedStaff = Object.entries(staffMap).sort((a, b) => b[1] - a[1]).slice(0, 2);
+        const maxVal = sortedStaff.length > 0 ? sortedStaff[0][1] : 1;
+
+        document.getElementById('staff-stats').innerHTML = sortedStaff.map(([name, count]) => `
+            <div class="top-staff-row text-start px-2">
+                <div class="d-flex justify-content-between small">
+                    <span class="text-truncate" style="max-width:70px">${name}</span>
+                    <span>${count}</span>
+                </div>
+                <div style="background:#333; height:4px; border-radius:2px">
+                    <div class="chart-bar" style="width:${(count/maxVal)*100}%"></div>
+                </div>
+            </div>`).join('') || '<span class="small text-white-50">Nessun dato</span>';
+    }
+
+    function renderTable(data) {
+        document.getElementById('archive-body').innerHTML = [...data].reverse().map(i => `
+            <tr>
+                <td>${i.deliveryDate || '--'}</td><td>${i.time}</td>
+                <td class="fw-bold">${i.guest}</td>
+                <td><span class="badge bg-dark" style="color:var(--gold)">${i.room}</span></td>
+                <td class="small">${i.type || '--'}</td><td>${i.pcs}</td>
+                <td class="font-monospace">${i.durata || '--'}</td>
+                <td class="fw-bold" style="color:var(--dark-gold)">${i.user}</td>
+            </tr>`).join('');
+    }
+
+    function filterTable() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const field = document.getElementById('searchField').value;
+        const filtered = fullDataCache.filter(item => (item[field] || "").toString().toLowerCase().includes(input));
+        renderTable(filtered);
+    }
+
+    document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
+    loadData();
+</script>
+</body>
+</html>

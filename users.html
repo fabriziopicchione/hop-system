@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestione Utenti LAN - Rome Cavalieri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; }
+        body { background: #000; color: white; font-family: 'Times New Roman', serif; padding: 40px; }
+        .container-box { max-width: 1000px; margin: auto; border: 1px solid var(--gold); padding: 30px; background: #111; position: relative; }
+        .table { color: white; border-color: #333; vertical-align: middle; }
+        .form-control, .form-select { background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 0; }
+        .form-control:focus, .form-select:focus { background: #222; color: white; border-color: var(--gold); box-shadow: none; }
+        .btn-gold { background: var(--gold); color: black; border: none; font-weight: bold; border-radius: 0; }
+        .btn-gold:hover { background: #b08d4a; }
+        .gold-text { color: var(--gold); }
+        .action-icon { cursor: pointer; color: var(--gold); transition: 0.2s; margin: 0 5px; }
+        .action-icon:hover { color: white; transform: scale(1.2); }
+        .badge-role { font-size: 0.75rem; padding: 5px 10px; border: 1px solid var(--gold); color: var(--gold); }
+    </style>
+</head>
+<body>
+
+<div class="container-box">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="gold-text mb-0">USER MANAGEMENT</h2>
+        <a href="index.html" class="btn btn-outline-light btn-sm">EXIT</a>
+    </div>
+
+    <div class="row g-2 mb-4 p-3" style="background: rgba(197, 160, 89, 0.05); border: 1px dashed var(--gold);">
+        <div class="col-md-3">
+            <label class="small gold-text">NOME</label>
+            <input type="text" id="userNome" class="form-control" placeholder="Es. Marco">
+        </div>
+        <div class="col-md-3">
+            <label class="small gold-text">COGNOME</label>
+            <input type="text" id="userCognome" class="form-control" placeholder="Es. Rossi">
+        </div>
+        <div class="col-md-2">
+            <label class="small gold-text">ROLE</label>
+            <select id="userRole" class="form-select">
+                <option value="BellMan">BellMan</option>
+                <option value="Concierge">Concierge</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="small gold-text">PIN (AUTO)</label>
+            <input type="text" id="userPin" class="form-control" maxlength="4">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-gold w-100" onclick="addUser()">AGGIUNGI</button>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr class="gold-text">
+                <th>NOME</th>
+                <th>COGNOME</th>
+                <th>RUOLO</th>
+                <th>PIN</th>
+                <th class="text-end">AZIONI</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-gold text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title gold-text">MODIFICA UTENTE</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editIndex">
+                <div class="mb-3">
+                    <label class="small gold-text">NOME</label>
+                    <input type="text" id="editNome" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="small gold-text">COGNOME</label>
+                    <input type="text" id="editCognome" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="small gold-text">RUOLO</label>
+                    <select id="editRole" class="form-select">
+                        <option value="BellMan">BellMan</option>
+                        <option value="Concierge">Concierge</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="small gold-text">PIN (4 CIFRE)</label>
+                    <input type="text" id="editPin" class="form-control" maxlength="4">
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser()">ELIMINA UTENTE</button>
+                <button type="button" class="btn btn-gold btn-sm" onclick="saveEdit()">SALVA MODIFICHE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const USERS_API = '/api/users'; // ù
+    let allUsers = [];
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
+    function generaPIN() {
+        return Math.floor(1000 + Math.random() * 9000).toString();
+    }
+
+    async function loadUsers() {
+        try {
+            const res = await fetch(USERS_API);
+            allUsers = await res.json();
+            renderTable();
+            document.getElementById('userPin').value = generaPIN();
+        } catch (e) { console.error("Errore caricamento utenti"); }
+    }
+
+    function renderTable() {
+        const body = document.getElementById('userTableBody');
+        body.innerHTML = allUsers.map((user, index) => `
+            <tr>
+                <td>${user.nome}</td>
+                <td>${user.cognome}</td>
+                <td><span class="badge-role">${user.role}</span></td>
+                <td class="fw-bold gold-text">${user.codice}</td>
+                <td class="text-end">
+                    <span class="action-icon" onclick="openEdit(${index})">
+                        <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M9.405 1.05c-.413-.927-1.735-.927-2.148 0L6.58 3.042a3.001 3.001 0 0 1-1.158.485l-2.14.412c-.996.192-1.382 1.444-.665 2.16l1.52 1.519a3.001 3.001 0 0 1 .485 1.158l-.412 2.14c-.192.996 1.057 1.382 2.16.665l1.519-1.52a3.001 3.001 0 0 1 1.158-.485l2.14-.412c.996-.192 1.382-1.444.665-2.16l-1.52-1.519a3.001 3.001 0 0 1-.485-1.158l.412-2.14zM8 4.75a3.25 3.25 0 1 1 0 6.5 3.25 3.25 0 0 1 0-6.5z"/>
+                        </svg>
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function addUser() {
+        const nome = document.getElementById('userNome').value.trim();
+        const cognome = document.getElementById('userCognome').value.trim();
+        const role = document.getElementById('userRole').value;
+        const codice = document.getElementById('userPin').value.trim();
+
+        if(!nome || !cognome || !codice) return alert("Compila tutti i campi!");
+
+        if(allUsers.some(u => u.codice === codice)) {
+            alert("ERRORE: Questo PIN è già assegnato a un altro utente!");
+            return;
+        }
+
+        const newUser = { nome, cognome, role, codice };
+        await syncServer([...allUsers, newUser]);
+        
+        document.getElementById('userNome').value = '';
+        document.getElementById('userCognome').value = '';
+        loadUsers();
+    }
+
+    function openEdit(index) {
+        const u = allUsers[index];
+        document.getElementById('editIndex').value = index;
+        document.getElementById('editNome').value = u.nome;
+        document.getElementById('editCognome').value = u.cognome;
+        document.getElementById('editRole').value = u.role;
+        document.getElementById('editPin').value = u.codice;
+        editModal.show();
+    }
+
+    async function saveEdit() {
+        const index = document.getElementById('editIndex').value;
+        const newPin = document.getElementById('editPin').value;
+
+        // Verifica duplicati PIN (escludendo se stesso)
+        if(allUsers.some((u, i) => u.codice === newPin && i != index)) {
+            alert("ERRORE: PIN già esistente!");
+            return;
+        }
+
+        allUsers[index] = {
+            nome: document.getElementById('editNome').value,
+            cognome: document.getElementById('editCognome').value,
+            role: document.getElementById('editRole').value,
+            codice: newPin
+        };
+
+        await syncServer(allUsers);
+        editModal.hide();
+        loadUsers();
+    }
+
+    async function deleteUser() {
+        if(confirm("Eliminare definitivamente l'utente?")) {
+            const index = document.getElementById('editIndex').value;
+            allUsers.splice(index, 1);
+            await syncServer(allUsers);
+            editModal.hide();
+            loadUsers();
+        }
+    }
+
+    async function syncServer(data) {
+    try {
+        const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+            throw new Error("Errore risposta server");
+        }
+        console.log("Dati sincronizzati");
+    } catch (e) {
+        alert("Errore critico: Il server LAN non ha salvato i dati. Verifica che server.js sia attivo.");
+    }
+}
+
+    loadUsers();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Reception - Rome Cavalieri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { 
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('background.jpg') no-repeat center center fixed; 
+            background-size: cover; 
+            color: #c5a059; 
+            font-family: 'Times New Roman', serif; 
+            min-height: 100vh;
+            padding-bottom: 380px; 
+        }
+        .card-custom { 
+            background: rgba(0, 0, 0, 0.85); 
+            border: 1px solid #c5a059; 
+            border-radius: 15px; 
+            padding: 2rem; 
+            height: 100%; 
+        }
+        .section-title { 
+            color: #c5a059; 
+            letter-spacing: 3px; 
+            font-size: 1.2rem; 
+            border-bottom: 1px solid #c5a059; 
+            padding-bottom: 15px; 
+            margin-bottom: 25px; 
+            text-transform: uppercase;
+            text-align: center;
+        }
+        .form-control { background: rgba(255, 255, 255, 0.95); border: 1px solid #c5a059; color: #000; }
+        
+        /* --- STILE PULSANTI --- */
+        .gold-btn { 
+            background-color: #c5a059; 
+            color: black; 
+            border: 2px solid #c5a059; 
+            font-weight: bold; 
+            padding: 15px; 
+            letter-spacing: 2px; 
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        .gold-btn:hover {
+            background-color: #856404;
+            border-color: #856404;
+            color: white;
+        }
+
+        .move-btn {
+            background: #333; 
+            color: #c5a059; 
+            border: 2px solid #c5a059;
+        }
+        /* Effetto hover per Room Move */
+        .move-btn:hover {
+            background-color: #c5a059;
+            color: black;
+            border-color: #c5a059;
+        }
+
+        /* --- LIVE MONITOR --- */
+        .log-section { 
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(10, 10, 10, 0.98); 
+            border-top: 2px solid #c5a059; 
+            padding: 15px 25px; height: 350px; z-index: 1000;
+        }
+        .monitor-header { color: #856404; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .table-scroll-container { height: 260px; overflow-y: auto; border: 1px solid rgba(197, 160, 89, 0.1); }
+        .table-dark-custom { width: 100%; color: white; font-size: 0.85rem; margin-bottom: 0; }
+        .table-dark-custom th { background: #c5a059; color: black; position: sticky; top: 0; z-index: 10; padding: 10px; text-transform: uppercase; }
+        .table-dark-custom td { padding: 10px; vertical-align: middle; border-bottom: 1px solid rgba(197, 160, 89, 0.1); }
+        .status-working { color: #ffc107; font-weight: bold; animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0.3; } }
+        .btn-icon { background: transparent; border: 1px solid #c5a059; color: #c5a059; padding: 2px 8px; margin-left: 5px; border-radius: 4px; font-size: 0.8rem; }
+        .btn-icon:hover { background: #c5a059; color: black; }
+        .btn-delete-icon { border-color: #dc3545; color: #dc3545; }
+        .btn-delete-icon:hover { background: #dc3545; color: white; }
+        .badge-locked { color: #666; font-size: 0.75rem; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="index.html" style="color: #c5a059; text-decoration: none;">← HOME</a>
+            <h2 class="m-0" style="letter-spacing: 4px; font-weight: 300;">H.O.P. RECEPTION</h2>
+            <span id="sync-status" class="badge bg-success">SERVER SYNC</span>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card card-custom">
+                    <h5 class="section-title">Check-in</h5>
+                    <form id="luggageForm" class="row g-3">
+                        <div class="col-md-6"><label class="small text-white-50">TAG NUMBER </label><input type="text" id="barcode" class="form-control" required autofocus></div>
+                        <div class="col-md-6"><label class="small text-white-50">ROOM NUMBER</label><input type="text" id="room" class="form-control" required></div>
+                        <div class="col-12"><label class="small text-white-50">GUEST NAME</label><input type="text" id="guestName" class="form-control" required></div>
+                        <div class="col-md-4"><label class="small text-white-50">PCS</label><input type="number" id="pcs" class="form-control" value="1"></div>
+                        <div class="col-md-8"><label class="small text-white-50">NOTES</label><input type="text" id="checkinNotes" class="form-control" maxlength="25"></div>
+                        <button type="submit" class="btn gold-btn">SEND</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card card-custom">
+                    <h5 class="section-title">Room Move</h5>
+                    <form id="moveForm" class="row g-3">
+                        <div class="col-12"><label class="small text-white-50">GUEST NAME</label><input type="text" id="moveGuestName" class="form-control" required></div>
+                        <div class="col-6"><label class="small text-white-50">FROM ROOM</label><input type="text" id="moveFrom" class="form-control" required></div>
+                        <div class="col-6"><label class="small text-white-50">TO ROOM</label><input type="text" id="moveTo" class="form-control" required></div>
+                        <div class="col-12"><label class="small text-white-50">NOTES</label><input type="text" id="moveNotes" class="form-control" maxlength="25"></div>
+                        <button type="submit" class="btn gold-btn move-btn">SEND</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="log-section">
+        <div class="monitor-header">
+            <span><i class="fas fa-list-ul me-2"></i>CONCIERGE LIVE MONITORING</span>
+            <small class="text-white-50" style="font-size: 0.7rem;">Only tickets created at Reception can be modified</small>
+        </div>
+        <div class="table-scroll-container">
+            <table class="table-dark-custom">
+                <thead>
+                    <tr><th>TIME</th><th>GUEST NAME</th><th>ROOM N.</th><th>DETAILS</th><th>STATUS</th><th class="text-end">EDIT / DELETE</th></tr>
+                </thead>
+                <tbody id="server-log-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/luggage';
+
+        async function fetchServerLog() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                const tbody = document.getElementById('server-log-body');
+                tbody.innerHTML = data.reverse().map(item => {
+                    const isWorking = item.status === 'DELIVERING';
+                    const isManual = item.barcode === 'MANUAL';
+                    const actions = isManual ? `<span class="badge-locked"><i class="fas fa-lock"></i> Locked</span>` : 
+                        `<button class="btn-icon" onclick="recall(${item.id}, '${item.barcode}', '${item.guest}', '${item.room}', '${item.pcs}')"><i class="fas fa-edit"></i></button>
+                         <button class="btn-icon btn-delete-icon" onclick="del(${item.id})"><i class="fas fa-trash"></i></button>`;
+                    return `<tr><td>${item.time}</td><td class="fw-bold">${item.guest}</td><td><span style="color:#c5a059">R. ${item.room}</span></td>
+                        <td>${item.pcs}</td><td>${isWorking ? '<span class="status-working">IN PROGRESS</span>' : '<span class="text-danger small">PENDING</span>'}</td><td class="text-end">${actions}</td></tr>`
+                }).join('');
+            } catch (err) {}
+        }
+
+        async function recall(id, barcode, guest, room, pcs) {
+            if (barcode === 'MOVE') {
+                const parts = room.split(' → ');
+                document.getElementById('moveGuestName').value = guest;
+                document.getElementById('moveFrom').value = parts[0];
+                document.getElementById('moveTo').value = parts[1];
+            } else {
+                document.getElementById('barcode').value = barcode;
+                document.getElementById('guestName').value = guest;
+                document.getElementById('room').value = room;
+                document.getElementById('pcs').value = parseInt(pcs) || 1;
+            }
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            fetchServerLog();
+        }
+
+        async function del(id) { if (confirm("Eliminare?")) { await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); fetchServerLog(); } }
+
+        document.getElementById('luggageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const item = {
+                barcode: document.getElementById('barcode').value,
+                guest: document.getElementById('guestName').value,
+                room: document.getElementById('room').value,
+                pcs: document.getElementById('checkinNotes').value ? `${document.getElementById('pcs').value} (${document.getElementById('checkinNotes').value})` : document.getElementById('pcs').value,
+                type: 'LUGGAGE',
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                status: 'PENDING'
+            };
+            await send(item, this);
+        });
+
+        document.getElementById('moveForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const item = {
+                barcode: 'MOVE',
+                guest: document.getElementById('moveGuestName').value,
+                room: `${document.getElementById('moveFrom').value} → ${document.getElementById('moveTo').value}`,
+                pcs: document.getElementById('moveNotes').value || 'ROOM MOVE',
+                type: 'ROOM MOVE',
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                status: 'PENDING'
+            };
+            await send(item, this);
+        });
+
+        async function send(data, form) {
+            await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            form.reset(); if(document.getElementById('pcs')) document.getElementById('pcs').value = 1;
+            fetchServerLog();
+            document.getElementById('barcode').focus();
+        }
+
+        setInterval(fetchServerLog, 4000);
+        fetchServerLog();
+    </script>
+</body>
+</html>
