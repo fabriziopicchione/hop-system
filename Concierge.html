@@ -17,7 +17,17 @@
             padding: 15px; width: 220px; min-height: 240px; position: relative;
             display: flex; flex-direction: column; justify-content: space-between;
         }
-        .card-delivering { background: rgba(255, 193, 7, 0.1) !important; border: 2px solid #ffc107 !important; }
+        /* CORREZIONE: Effetto lampeggiante per ticket in consegna */
+        .card-delivering { 
+            background: rgba(255, 193, 7, 0.2) !important; 
+            border: 2px solid #ffc107 !important; 
+            animation: card-pulse 2s infinite;
+        }
+        @keyframes card-pulse {
+            0% { box-shadow: 0 0 5px rgba(255,193,7,0.2); }
+            50% { box-shadow: 0 0 20px rgba(255,193,7,0.5); }
+            100% { box-shadow: 0 0 5px rgba(255,193,7,0.2); }
+        }
         .status-led { position: absolute; top: 15px; right: 15px; width: 14px; height: 14px; border-radius: 50%; z-index: 100; }
         .led-red { background: #ff4444; box-shadow: 0 0 12px #ff4444; animation: blink-fast 1s infinite; }
         .led-yellow-blink { background: #ffc107; box-shadow: 0 0 12px #ffc107; animation: blink-slow 1.5s infinite; }
@@ -189,7 +199,6 @@
     const ARCHIVE_URL = '/api/archivio-dedicato';
     const USERS_URL = '/api/users';
 
-    // FUNZIONE TAG UNIVOCO 6 CIFRE
     function generate6DigitId() { return Math.floor(100000 + Math.random() * 900000).toString(); }
 
     function openQuickPrintModal() {
@@ -214,7 +223,6 @@
         new bootstrap.Modal(document.getElementById('manualEntryModal')).show();
     }
 
-    // SALVATAGGIO MANUALE CORRETTO CON START E 6 CIFRE
     async function saveManual() {
         const guest = document.getElementById('mName').value;
         const room = document.getElementById('mRoom').value;
@@ -227,7 +235,7 @@
             pcs: document.getElementById('mPcs').value, 
             type: document.getElementById('mDelivery').value, 
             status: 'PENDING', 
-            start: Date.now(), // Fondamentale per la durata
+            start: Date.now(), 
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         };
 
@@ -257,7 +265,7 @@
                     </div>
                     <div class="btn-group-custom">
                         <button class="btn-c ${isWorking ? 'btn-active' : ''}" onclick="toggleStatus('${t._id}', '${t.status}', '${t.guest}', '${t.room}', '${t.pcs}', '${t.barcode}')">${isWorking ? 'In Corso' : 'In Consegna'}</button>
-                        <button class="btn-c" onclick="completeDelivery('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}', ${t.start || Date.now()}, '${t.type}')">Consegnato</button>
+                        <button class="btn-c" onclick="completeDelivery('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}', ${t.start || Date.now()}, '${t.type}', '${t.barcode}')">Consegnato</button>
                         <button class="btn-c btn-annulla" onclick="cancelWithPorter('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}')">Annulla</button>
                     </div>
                 </div>`}).join('');
@@ -277,12 +285,13 @@
 
     function doPrint(tagId, room, guest, pcs) {
         document.getElementById('print-content').innerHTML = `
-            <div style="font-size: 16pt; font-weight: bold;">ROOM: ${room}</div>
-            <div style="font-size: 11pt;">${guest.toUpperCase()}</div>
-            <div style="font-size: 10pt;">Pezzi: ${pcs}</div>`;
+            <div style="font-size: 14pt; font-weight: bold;">ROOM: ${room}</div>
+            <div style="font-size: 10pt;">${guest.toUpperCase()}</div>
+            <div style="font-size: 9pt;">Pezzi: ${pcs}</div>`;
         document.getElementById('tag-id-display').innerText = tagId;
         document.getElementById('print-footer').innerHTML = new Date().toLocaleString();
-        JsBarcode("#barcode", tagId.toString(), { format: "CODE128", width: 2.5, height: 50, displayValue: false });
+        /* CORREZIONE: Ridotta larghezza barcode per 58mm */
+        JsBarcode("#barcode", tagId.toString(), { format: "CODE128", width: 1.5, height: 40, displayValue: false, margin: 0 });
         setTimeout(() => { window.print(); }, 400);
     }
 
@@ -293,7 +302,7 @@
         renderAll();
     }
 
-    async function completeDelivery(id, guest, room, pcs, start, type) {
+    async function completeDelivery(id, guest, room, pcs, start, type, barcode) {
         const code = prompt("PIN Porter:");
         if (!code) return;
         const resU = await fetch(USERS_URL);
@@ -303,6 +312,7 @@
             const startTime = start || Date.now();
             const diff = Math.round((Date.now() - startTime) / 60000);
             const data = { 
+                barcode: barcode, /* CORREZIONE: Barcode persistente in archivio */
                 guest, room, pcs, type, 
                 status: 'COMPLETED', 
                 user: user ? `${user.nome} ${user.cognome}` : "Admin", 
