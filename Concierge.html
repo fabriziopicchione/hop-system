@@ -36,7 +36,6 @@
         .main-table th { background: #c5a059; color: black; padding: 8px; position: sticky; top: 0; }
         .text-cancelled { color: #ff4444 !important; font-weight: bold; }
 
-        /* FOOTER NAVIGAZIONE ELEGANTE */
         .bottom-nav-bar {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
             background: #000; border-top: 1px solid #c5a059;
@@ -51,7 +50,6 @@
         }
         .nav-btn-gold:hover { color: black; background: #c5a059; box-shadow: 0 0 15px rgba(197, 160, 89, 0.4); }
 
-        /* STILE MODALI PERSONALIZZATO */
         .modal-content-luxury {
             background: rgba(15, 15, 15, 0.98) !important;
             border: 2px solid #c5a059 !important;
@@ -69,7 +67,6 @@
             box-shadow: 0 0 8px rgba(197, 160, 89, 0.3);
         }
 
-        /* STAMPA */
         #thermal-print-area { display: none; }
         @media print {
             body * { visibility: hidden; }
@@ -171,8 +168,8 @@
             <div class="mb-4">
                 <label>TIPOLOGIA</label>
                 <select id="mDelivery" class="form-select luxury-input text-start">
-                    <option value="LUGGAGE">CHECK IN</option>
-	            <option value="LUGGAGE">CHECK OUT</option>		
+                    <option value="CHECK IN">CHECK IN</option>
+                    <option value="CHECK OUT">CHECK OUT</option>		
                     <option value="ROOM MOVE">ROOM MOVE</option>
                     <option value="LETTER/MSG">LETTER/MSG</option>
                     <option value="BOX/PACKAGE">BOX/PACKAGE</option>
@@ -192,9 +189,9 @@
     const ARCHIVE_URL = '/api/archivio-dedicato';
     const USERS_URL = '/api/users';
 
-    function generate8DigitId() { return Math.floor(10000000 + Math.random() * 90000000); }
+    // FUNZIONE TAG UNIVOCO 6 CIFRE
+    function generate6DigitId() { return Math.floor(100000 + Math.random() * 900000).toString(); }
 
-    // GESTIONE STAMPA RAPIDA
     function openQuickPrintModal() {
         document.getElementById('qRoom').value = "";
         document.getElementById('qPcs').value = "1";
@@ -207,10 +204,9 @@
         const pcs = document.getElementById('qPcs').value;
         if (!room) return alert("Inserire numero camera");
         bootstrap.Modal.getInstance(document.getElementById('quickPrintModal')).hide();
-        doPrint(generate8DigitId(), room, "TAG MANUALE", pcs);
+        doPrint(generate6DigitId(), room, "TAG MANUALE", pcs);
     }
 
-    // GESTIONE DROP MANUALE
     function openManualModal() {
         document.getElementById('mName').value = "";
         document.getElementById('mRoom').value = "";
@@ -218,17 +214,23 @@
         new bootstrap.Modal(document.getElementById('manualEntryModal')).show();
     }
 
+    // SALVATAGGIO MANUALE CORRETTO CON START E 6 CIFRE
     async function saveManual() {
+        const guest = document.getElementById('mName').value;
+        const room = document.getElementById('mRoom').value;
+        if(!guest || !room) return alert("Dati mancanti!");
+
         const data = { 
-            id: generate8DigitId().toString(),
-            guest: document.getElementById('mName').value, 
-            room: document.getElementById('mRoom').value, 
+            barcode: generate6DigitId(),
+            guest: guest, 
+            room: room, 
             pcs: document.getElementById('mPcs').value, 
             type: document.getElementById('mDelivery').value, 
-            status: 'PENDING', timestamp: Date.now(),
+            status: 'PENDING', 
+            start: Date.now(), // Fondamentale per la durata
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         };
-        if(!data.guest || !data.room) return alert("Dati mancanti!");
+
         await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
         bootstrap.Modal.getInstance(document.getElementById('manualEntryModal')).hide();
         renderAll();
@@ -240,8 +242,8 @@
             const tickets = await resL.json();
             document.getElementById('luggage-list').innerHTML = tickets.map(t => {
                 const isWorking = t.status === 'DELIVERING';
-                const timeRef = t.timestamp || t.id;
-                const ledClass = isWorking ? "led-yellow-blink" : (Math.floor((Date.now() - timeRef) / 60000) < 5 ? "led-red" : "led-yellow-blink");
+                const startTime = t.start || Date.now();
+                const ledClass = isWorking ? "led-yellow-blink" : (Math.floor((Date.now() - startTime) / 60000) < 5 ? "led-red" : "led-yellow-blink");
 
                 return `
                 <div class="luggage-card ${isWorking ? 'card-delivering' : ''}">
@@ -251,10 +253,11 @@
                         <span class="guest-name">${t.guest}</span>
                         <div class="mt-2"><span class="type-label">${t.type || 'LUGGAGE'}</span></div>
                         <small class="text-warning d-block">Pezzi: ${t.pcs || 1}</small>
+                        <small class="text-white opacity-50" style="font-size:0.6rem;">ID: ${t.barcode || '---'}</small>
                     </div>
                     <div class="btn-group-custom">
-                        <button class="btn-c ${isWorking ? 'btn-active' : ''}" onclick="toggleStatus('${t._id}', '${t.status}', '${t.guest}', '${t.room}', '${t.pcs}')">${isWorking ? 'In Corso' : 'In Consegna'}</button>
-                        <button class="btn-c" onclick="completeDelivery('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}', ${timeRef}, '${t.type}')">Consegnato</button>
+                        <button class="btn-c ${isWorking ? 'btn-active' : ''}" onclick="toggleStatus('${t._id}', '${t.status}', '${t.guest}', '${t.room}', '${t.pcs}', '${t.barcode}')">${isWorking ? 'In Corso' : 'In Consegna'}</button>
+                        <button class="btn-c" onclick="completeDelivery('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}', ${t.start || Date.now()}, '${t.type}')">Consegnato</button>
                         <button class="btn-c btn-annulla" onclick="cancelWithPorter('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}')">Annulla</button>
                     </div>
                 </div>`}).join('');
@@ -283,11 +286,34 @@
         setTimeout(() => { window.print(); }, 400);
     }
 
-    async function toggleStatus(id, currentStatus, guest, room, pcs) {
+    async function toggleStatus(id, currentStatus, guest, room, pcs, barcode) {
         const isNowDelivering = currentStatus !== 'DELIVERING';
-        if(isNowDelivering) doPrint(generate8DigitId(), room, guest, pcs);
+        if(isNowDelivering) doPrint(barcode || generate6DigitId(), room, guest, pcs);
         await fetch(`${API_URL}/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: isNowDelivering ? 'DELIVERING' : 'PENDING' }) });
         renderAll();
+    }
+
+    async function completeDelivery(id, guest, room, pcs, start, type) {
+        const code = prompt("PIN Porter:");
+        if (!code) return;
+        const resU = await fetch(USERS_URL);
+        const users = await resU.json();
+        const user = users.find(u => u.codice === code);
+        if(user || code === "2251") {
+            const startTime = start || Date.now();
+            const diff = Math.round((Date.now() - startTime) / 60000);
+            const data = { 
+                guest, room, pcs, type, 
+                status: 'COMPLETED', 
+                user: user ? `${user.nome} ${user.cognome}` : "Admin", 
+                durata: diff + " min", 
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 
+                deliveryDate: new Date().toISOString().split('T')[0] 
+            };
+            await fetch(ARCHIVE_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            renderAll();
+        } else { alert("PIN Errato"); }
     }
 
     async function cancelWithPorter(id, guest, room, pcs) {
@@ -305,22 +331,8 @@
         } else { alert("PIN Errato"); }
     }
 
-    async function completeDelivery(id, guest, room, pcs, start, type) {
-        const code = prompt("PIN Porter:");
-        const resU = await fetch(USERS_URL);
-        const users = await resU.json();
-        const user = users.find(u => u.codice === code);
-        if(user || code === "2251") {
-            const data = { guest, room, pcs, type, status: 'COMPLETED', user: user ? `${user.nome} ${user.cognome}` : "Admin", durata: Math.round((Date.now() - start) / 60000) + " min", time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), deliveryDate: new Date().toISOString().split('T')[0] };
-            await fetch(ARCHIVE_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            renderAll();
-        } else { alert("PIN errato"); }
-    }
-
     renderAll();
     setInterval(renderAll, 5000);
 </script>
 </body>
 </html>
-
