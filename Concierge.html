@@ -28,8 +28,14 @@
         .main-table th { background: #c5a059; color: black; padding: 8px; position: sticky; top: 0; }
         .bottom-nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: #000; border-top: 1px solid #c5a059; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 1100; }
         .nav-btn-gold { color: #c5a059; text-decoration: none; font-weight: bold; letter-spacing: 2px; font-size: 0.85rem; padding: 8px 20px; border: 1px solid #c5a059; background: transparent; transition: 0.3s; cursor: pointer; display: flex; align-items: center; gap: 10px; text-transform: uppercase; }
-        .modal-content-luxury { background: rgba(15, 15, 15, 0.98) !important; border: 2px solid #c5a059 !important; border-radius: 15px !important; }
-        .luxury-input { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid #444 !important; color: #c5a059 !important; text-align: center; }
+        
+        .btn-porter-float { position: fixed; bottom: 12px; right: 40px; width: 45px; height: 45px; background: #c5a059; color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.2rem; z-index: 1200; border: 2px solid black; box-shadow: 0 0 10px rgba(197, 160, 89, 0.5); transition: 0.3s; }
+        .btn-porter-float:hover { background: #ffc107; transform: scale(1.1); color: black; }
+
+        .modal-content-luxury { background: rgba(15, 15, 15, 0.98) !important; border: 2px solid #c5a059 !important; border-radius: 15px !important; color: #c5a059; }
+        .luxury-input { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid #444 !important; color: #c5a059 !important; }
+        label { font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 5px; display: block; color: #c5a059; font-weight: bold; }
+        
         #thermal-print-area { display: none; }
         @media print {
             body * { visibility: hidden; }
@@ -49,6 +55,7 @@
         </div>
     </div>
     <div id="luggage-list" class="d-flex flex-wrap gap-4"></div>
+    
     <div id="thermal-print-area">
         <div style="text-align:center;"><b>HOP - Rome Cavalieri</b></div>
         <div id="print-content" style="text-align:center;"></div>
@@ -56,6 +63,7 @@
         <div style="text-align:center;"><svg id="barcode-svg"></svg></div>
         <div id="print-footer" style="text-align:center; font-size: 8pt; border-top: 1px dashed black;"></div>
     </div>
+
     <div class="delivery-section">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="text-success m-0">CONSEGNE DEL GIORNO</h6>
@@ -63,18 +71,89 @@
         </div>
         <div style="height: 280px; overflow-y: auto;">
             <table class="main-table table table-dark table-sm">
-                <thead><tr><th>ORA</th><th>GUEST</th><th>ROOM</th><th>PCS</th><th>PORTER / STATO</th></tr></thead>
+                <thead><tr><th>ORA</th><th>TAG</th><th>GUEST</th><th>ROOM</th><th>PCS</th><th>PORTER / STATO</th></tr></thead>
                 <tbody id="today-deliveries-body"></tbody>
             </table>
         </div>
     </div>
-    <div class="bottom-nav-bar"><a href="index.html" class="nav-btn-gold">HOME PAGE</a></div>
+
+    <div class="bottom-nav-bar">
+        <a href="index.html" class="nav-btn-gold">HOME PAGE</a>
+    </div>
+
+    <a href="Porter.html" class="btn-porter-float" title="Pagina Porter">
+        <i class="fas fa-walking"></i>
+    </a>
 </div>
 
+<div class="modal fade" id="manualEntryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-warning m-0 fw-bold">DELIVERY DETAILS</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="mb-3">
+                <label>NOME OSPITE</label>
+                <input type="text" id="mName" class="form-control luxury-input text-start">
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label>CAMERA</label>
+                    <input type="text" id="mRoom" class="form-control luxury-input">
+                </div>
+                <div class="col-6">
+                    <label>PEZZI (PCS)</label>
+                    <input type="number" id="mPcs" class="form-control luxury-input" value="1">
+                </div>
+            </div>
+            <div class="mb-4">
+                <label>TIPOLOGIA</label>
+                <select id="mDelivery" class="form-select luxury-input text-start">
+                    <option value="CHECK IN">CHECK IN</option>
+                    <option value="CHECK OUT">CHECK OUT</option>        
+                    <option value="ROOM MOVE">ROOM MOVE</option>
+                    <option value="LETTER/MSG">LETTER/MSG</option>
+                    <option value="BOX/PACKAGE">BOX/PACKAGE</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-danger w-50 fw-bold" data-bs-dismiss="modal">ANNULLA</button>
+                <button class="btn btn-warning w-50 fw-bold" onclick="saveManual()">SALVA TICKET</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API_URL = '/api/luggage';
     const ARCHIVE_URL = '/api/archivio-dedicato';
     const USERS_URL = '/api/users';
+
+    function openManualModal() {
+        new bootstrap.Modal(document.getElementById('manualEntryModal')).show();
+    }
+
+    async function saveManual() {
+        const barcode = Math.floor(100000 + Math.random() * 900000).toString();
+        const data = {
+            barcode: barcode,
+            guest: document.getElementById('mName').value.toUpperCase(),
+            room: document.getElementById('mRoom').value,
+            pcs: document.getElementById('mPcs').value,
+            type: document.getElementById('mDelivery').value,
+            status: 'PENDING',
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            start: Date.now()
+        };
+        if(!data.guest || !data.room) { alert("Dati mancanti!"); return; }
+        
+        await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        bootstrap.Modal.getInstance(document.getElementById('manualEntryModal')).hide();
+        renderAll();
+        doPrint(barcode, data.room, data.guest, data.pcs);
+    }
 
     async function renderAll() {
         try {
@@ -102,19 +181,14 @@
             const today = new Date().toISOString().split('T')[0];
             const resA = await fetch(`${ARCHIVE_URL}?date=${today}`);
             const hist = await resA.json();
-            document.getElementById('today-deliveries-body').innerHTML = hist.reverse().map(i => `<tr><td>${i.time}</td><td>${i.guest}</td><td>${i.room}</td><td>${i.pcs}</td><td>${i.user} (${i.durata || ''})</td></tr>`).join('');
+            document.getElementById('today-deliveries-body').innerHTML = hist.reverse().map(i => `<tr><td>${i.time}</td><td><span class="text-warning fw-bold">${i.barcode || '-'}</span></td><td>${i.guest}</td><td>${i.room}</td><td>${i.pcs}</td><td>${i.user} (${i.durata || ''})</td></tr>`).join('');
         } catch (e) {}
     }
 
     async function toggleStatus(id, currentStatus, guest, room, pcs, barcode) {
         const nextStatus = currentStatus === 'DELIVERING' ? 'PENDING' : 'DELIVERING';
         if(nextStatus === 'DELIVERING') doPrint(barcode, room, guest, pcs);
-        
-        await fetch(`${API_URL}/${id}`, { 
-            method: 'PATCH', 
-            headers: {'Content-Type': 'application/json'}, 
-            body: JSON.stringify({ status: nextStatus }) 
-        });
+        await fetch(`${API_URL}/${id}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: nextStatus }) });
         renderAll();
     }
 
@@ -135,6 +209,21 @@
         if(user || pin === "2251") {
             const diff = Math.round((Date.now() - (start || Date.now())) / 60000);
             const data = { barcode, guest, room, pcs, type, status: 'COMPLETED', user: user ? `${user.nome} ${user.cognome}` : "Admin", durata: diff + " min", time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), deliveryDate: new Date().toISOString().split('T')[0] };
+            await fetch(ARCHIVE_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            renderAll();
+        }
+    }
+
+    async function cancelWithPorter(id, guest, room, pcs) {
+        if(!confirm("Annullare il ticket?")) return;
+        const code = prompt("PIN Porter per annullamento:");
+        const resU = await fetch(USERS_URL);
+        const users = await resU.json();
+        const user = users.find(u => u.codice === code);
+        if(user || code === "2251") {
+            const porterName = user ? `${user.nome} ${user.cognome}` : "Admin";
+            const data = { guest, room, pcs, status: 'CANCELLED', user: `CANCELLED BY ${porterName}`, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), deliveryDate: new Date().toISOString().split('T')[0] };
             await fetch(ARCHIVE_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
             await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
             renderAll();
