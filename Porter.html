@@ -7,44 +7,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --dark: #121212; --card-bg: #1a1a1a; }
-        body { 
-            background-color: var(--dark); color: var(--gold); 
-            font-family: 'Segoe UI', Roboto, sans-serif; padding: 10px;
-        }
-        .header-mobile {
-            text-align: center; border-bottom: 2px solid var(--gold);
-            padding-bottom: 10px; margin-bottom: 20px;
-        }
-        .ticket-card {
-            background: var(--card-bg); border: 1px solid var(--gold);
-            border-radius: 15px; padding: 20px; margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        .room-badge {
-            font-size: 2.2rem; font-weight: 900; color: white;
-            display: block; line-height: 1;
-        }
+        body { background-color: var(--dark); color: var(--gold); font-family: 'Segoe UI', sans-serif; padding: 10px; }
+        .header-mobile { text-align: center; border-bottom: 2px solid var(--gold); padding-bottom: 10px; margin-bottom: 20px; }
+        .ticket-card { background: var(--card-bg); border: 1px solid var(--gold); border-radius: 15px; padding: 20px; margin-bottom: 15px; }
+        .room-badge { font-size: 2.2rem; font-weight: 900; color: white; display: block; }
         .info-row { font-size: 1.1rem; color: #ddd; margin-top: 5px; }
-        .btn-delivery {
-            background-color: var(--gold); color: black;
-            font-weight: bold; font-size: 1.3rem; border: none;
-            padding: 18px; border-radius: 10px; width: 100%;
-            margin-top: 15px; text-transform: uppercase;
-        }
-        .btn-delivery:active { background-color: #a38448; transform: scale(0.98); }
-        .empty-state { text-align: center; margin-top: 50px; opacity: 0.6; }
+        .btn-delivery { background-color: var(--gold); color: black; font-weight: bold; font-size: 1.3rem; border: none; padding: 18px; border-radius: 10px; width: 100%; margin-top: 15px; }
     </style>
 </head>
 <body>
-
-    <div class="header-mobile">
-        <h2 style="margin:0; letter-spacing: 2px;">PORTER H.O.P.</h2>
-        <small id="last-update">Aggiornato: ora</small>
-    </div>
-
-    <div id="porter-list">
-        <div class="empty-state">Caricamento in corso...</div>
-    </div>
+    <div class="header-mobile"><h2 style="margin:0;">PORTER H.O.P.</h2><small id="last-update">Aggiornato: ora</small></div>
+    <div id="porter-list"></div>
 
     <script>
         const API_URL = '/api/luggage';
@@ -52,82 +25,33 @@
         const USERS_URL = '/api/users';
 
         async function fetchTickets() {
-            try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                const activeOnes = data.filter(t => t.status !== 'COMPLETED');
-                renderTickets(activeOnes);
-                document.getElementById('last-update').innerText = "Aggiornato: " + new Date().toLocaleTimeString();
-            } catch (err) { console.error("Errore fetch:", err); }
-        }
-
-        function renderTickets(tickets) {
-            const container = document.getElementById('porter-list');
-            if (tickets.length === 0) {
-                container.innerHTML = '<div class="empty-state"><h3>Ottimo lavoro!</h3><p>Nessuna consegna in attesa.</p></div>';
-                return;
-            }
-
-            container.innerHTML = tickets.map(t => `
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            document.getElementById('porter-list').innerHTML = data.map(t => `
                 <div class="ticket-card">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="room-badge">RM ${t.room}</span>
-                            <div class="info-row"><strong>Ospite:</strong> ${t.guest}</div>
-                        </div>
-                        <div class="text-end">
-                            <span class="badge bg-warning text-dark fs-5">${t.pcs} PZ</span>
-                        </div>
-                    </div>
-                    <div class="info-row" style="font-size: 0.9rem;">Tag: #${t.barcode || '---'} | Inserito: ${t.time}</div>
-                    
-                    /* CORREZIONE: Passa il barcode alla funzione di chiusura */
-                    <button onclick="completeDelivery('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}', ${t.start}, '${t.type}', '${t.barcode}')" 
-                            class="btn-delivery">
-                        CONSEGNA EFFETTUATA
-                    </button>
+                    <span class="room-badge">RM ${t.room}</span>
+                    <div class="info-row"><strong>${t.guest}</strong></div>
+                    <div class="info-row">Tag: #${t.barcode} | Pcs: ${t.pcs}</div>
+                    <button onclick="completeDelivery('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}', ${t.start}, '${t.type}', '${t.barcode}')" class="btn-delivery">CONSEGNA EFFETTUATA</button>
                 </div>
             `).join('');
+            document.getElementById('last-update').innerText = "Aggiornato: " + new Date().toLocaleTimeString();
         }
 
         async function completeDelivery(id, guest, room, pcs, start, type, barcode) {
-            const pin = prompt("Inserisci il tuo PIN:");
+            const pin = prompt("Inserisci PIN:");
             if (!pin) return;
-
-            try {
-                const resU = await fetch(USERS_URL);
-                const users = await resU.json();
-                const foundUser = users.find(u => u.codice === pin);
-
-                if (foundUser || pin === "2251") {
-                    const porterName = foundUser ? `${foundUser.nome} ${foundUser.cognome}` : "Admin";
-                    const startTime = start || Date.now();
-                    const durataMin = Math.round((Date.now() - startTime) / 60000);
-
-                   const archiveData = {
-                /* CORREZIONE: Barcode persistente in archivio */
-                barcode: barcode,
-                guest, room, pcs, type: type || 'Standard',
-                status: 'COMPLETED',
-                user: porterName,
-                durata: durataMin + " min",
-                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-                deliveryDate: new Date().toISOString().split('T')[0]
-            };
-
-                    await fetch(ARCHIVE_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(archiveData)
-                    });
-
-                    await fetch(API_URL + '/' + id, { method: 'DELETE' });
-                    alert("Consegna registrata!");
-                    fetchTickets(); 
-                } else { alert("PIN ERRATO!"); }
-            } catch (err) { alert("Errore durante la chiusura!"); }
+            const resU = await fetch(USERS_URL);
+            const users = await resU.json();
+            const user = users.find(u => u.codice === pin);
+            if (user || pin === "2251") {
+                const durataMin = Math.round((Date.now() - (start || Date.now())) / 60000);
+                const archiveData = { barcode, guest, room, pcs, type, status: 'COMPLETED', user: user ? `${user.nome} ${user.cognome}` : "Admin", durata: durataMin + " min", time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), deliveryDate: new Date().toISOString().split('T')[0] };
+                await fetch(ARCHIVE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(archiveData) });
+                await fetch(API_URL + '/' + id, { method: 'DELETE' });
+                fetchTickets();
+            } else { alert("PIN ERRATO!"); }
         }
-
         setInterval(fetchTickets, 8000);
         fetchTickets();
     </script>
