@@ -47,7 +47,7 @@
 
 <div class="modal fade" id="editModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark border-gold text-white">
+        <div class="modal-content bg-dark border-gold text-white" style="border: 1px solid var(--gold);">
             <div class="modal-header border-secondary"><h5 class="modal-title gold-text">MODIFICA UTENTE</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="editUserId">
@@ -61,7 +61,7 @@
             </div>
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser()">ELIMINA</button>
-                <button type="button" class="btn btn-gold btn-sm" onclick="saveEdit()">SALVA</button>
+                <button type="button" class="btn btn-gold btn-sm" onclick="saveEdit()">SALVA MODIFICHE</button>
             </div>
         </div>
     </div>
@@ -74,52 +74,54 @@
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
 
     async function loadUsers() {
-        const res = await fetch(USERS_API);
-        allUsers = await res.json();
-        document.getElementById('userTableBody').innerHTML = allUsers.map((u, i) => `
-            <tr>
-                <td>${u.nome}</td><td>${u.cognome}</td><td><span class="badge-role">${u.role}</span></td>
-                <td class="gold-text fw-bold">${u.codice}</td>
-                <td class="text-end"><span class="action-icon" onclick="openEdit(${i})">⚙️</span></td>
-            </tr>`).join('');
-        document.getElementById('userPin').value = Math.floor(1000 + Math.random() * 9000);
+        try {
+            const res = await fetch(USERS_API);
+            allUsers = await res.json();
+            document.getElementById('userTableBody').innerHTML = allUsers.map((u, i) => `
+                <tr>
+                    <td>${u.nome}</td><td>${u.cognome}</td><td><span class="badge-role">${u.role}</span></td>
+                    <td class="gold-text fw-bold">${u.codice}</td>
+                    <td class="text-end"><span class="action-icon" onclick="openEdit(${i})">⚙️</span></td>
+                </tr>`).join('');
+            // Genera un PIN casuale solo se il campo è vuoto
+            if (!document.getElementById('userPin').value) {
+                document.getElementById('userPin').value = Math.floor(1000 + Math.random() * 9000);
+            }
+        } catch (err) {
+            console.error("Errore caricamento utenti:", err);
+        }
     }
 
     async function addUser() {
-    const nome = document.getElementById('userNome').value.trim();
-    const cognome = document.getElementById('userCognome').value.trim();
-    const role = document.getElementById('userRole').value;
-    const codice = document.getElementById('userPin').value.trim();
+        const data = {
+            nome: document.getElementById('userNome').value.trim(),
+            cognome: document.getElementById('userCognome').value.trim(),
+            role: document.getElementById('userRole').value,
+            codice: document.getElementById('userPin').value.trim()
+        };
 
-    // Validazione semplice
-    if (!nome || !cognome || !codice) {
-        alert("Per favore, compila tutti i campi (Nome, Cognome e PIN)");
-        return;
-    }
+        if (!data.nome || !data.cognome || !data.codice) {
+            alert("Compila tutti i campi!");
+            return;
+        }
 
-    const data = { nome, cognome, role, codice };
-
-    try {
-        const response = await fetch(USERS_API, { 
+        const res = await fetch(USERS_API, { 
             method: 'POST', 
             headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify(data) 
         });
 
-        if (response.ok) {
-            // Svuota i campi dopo il salvataggio riuscito
+        if (res.ok) {
+            // Pulisce i campi dopo il successo
             document.getElementById('userNome').value = "";
             document.getElementById('userCognome').value = "";
-            alert("Utente salvato con successo!");
+            document.getElementById('userPin').value = Math.floor(1000 + Math.random() * 9000);
             loadUsers();
         } else {
-            alert("Errore del server durante il salvataggio.");
+            const errData = await res.json().catch(() => ({}));
+            alert("Errore del server: " + (errData.message || "Impossibile salvare l'utente. Verifica se il PIN è già in uso."));
         }
-    } catch (error) {
-        console.error("Errore di rete:", error);
-        alert("Errore di connessione al server.");
     }
-}
 
     function openEdit(i) {
         const u = allUsers[i];
@@ -134,23 +136,38 @@
     async function saveEdit() {
         const id = document.getElementById('editUserId').value;
         const data = {
-            nome: document.getElementById('editNome').value,
-            cognome: document.getElementById('editCognome').value,
+            nome: document.getElementById('editNome').value.trim(),
+            cognome: document.getElementById('editCognome').value.trim(),
             role: document.getElementById('editRole').value,
-            codice: document.getElementById('editPin').value
+            codice: document.getElementById('editPin').value.trim()
         };
-        await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
-        await fetch(USERS_API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        modal.hide();
-        loadUsers();
+
+        // Prima proviamo a creare il nuovo (o aggiornare), poi eliminiamo il vecchio se il server non supporta PUT/PATCH
+        const res = await fetch(USERS_API, { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify(data) 
+        });
+
+        if (res.ok) {
+            await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
+            modal.hide();
+            loadUsers();
+        } else {
+            alert("Errore durante la modifica. Assicurati che il PIN sia unico.");
+        }
     }
 
     async function deleteUser() {
-        if(!confirm("Eliminare?")) return;
+        if(!confirm("Eliminare definitivamente l'utente?")) return;
         const id = document.getElementById('editUserId').value;
-        await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
-        modal.hide();
-        loadUsers();
+        const res = await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            modal.hide();
+            loadUsers();
+        } else {
+            alert("Errore durante l'eliminazione.");
+        }
     }
 
     loadUsers();
