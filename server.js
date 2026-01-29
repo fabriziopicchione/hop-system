@@ -48,7 +48,6 @@ const depositSchema = new mongoose.Schema({
     releasePorter: String
 });
 
-// Schema Utenti corretto (campo 'role')
 const userSchema = new mongoose.Schema({
     nome: String,
     cognome: String,
@@ -98,10 +97,19 @@ app.get('/api/luggage', async (req, res) => {
     res.json(data);
 });
 
+// MODIFICATO: Forza lo stato PENDING per i nuovi bagagli
 app.post('/api/luggage', async (req, res) => {
-    const newItem = new Luggage(req.body);
-    await newItem.save();
-    res.json(newItem);
+    try {
+        const luggageData = {
+            ...req.body,
+            status: 'PENDING' // Assicura che il ticket sia visibile al porter
+        };
+        const newItem = new Luggage(luggageData);
+        await newItem.save();
+        res.json(newItem);
+    } catch (err) {
+        res.status(500).json({ error: "Errore nel salvataggio del bagaglio" });
+    }
 });
 
 app.delete('/api/luggage/:id', async (req, res) => {
