@@ -20,7 +20,7 @@ mongoose.connect(MONGODB_URI)
 // --- SCHEMI E MODELLI ---
 
 const luggageSchema = new mongoose.Schema({
-    barcode: String, // AGGIUNTO: Permette il salvataggio del Tag Number
+    barcode: String,
     guest: String, 
     room: String, 
     pcs: mongoose.Schema.Types.Mixed,
@@ -53,11 +53,11 @@ const userSchema = new mongoose.Schema({
     nome: String,
     cognome: String,
     codice: String,
-    ruolo: String
+    ruolo: String // Il server si aspetta 'ruolo'
 });
 
 const archivioDedicatoSchema = new mongoose.Schema({
-    barcode: String, // AGGIUNTO: Per lo storico tag in archivio
+    barcode: String,
     guest: String,
     room: String,
     pcs: mongoose.Schema.Types.Mixed,
@@ -76,7 +76,6 @@ const ArchivioDedicato = mongoose.model('ArchivioDedicato', archivioDedicatoSche
 const ArchivioDeposit = mongoose.model('ArchivioDeposit', depositSchema);
 
 // --- API LUGGAGE ---
-
 app.get('/api/luggage', async (req, res) => {
     const data = await Luggage.find();
     res.json(data);
@@ -88,7 +87,6 @@ app.post('/api/luggage', async (req, res) => {
     res.json(newItem);
 });
 
-// NUOVA ROTTA: Permette il cambio di status (es. da PENDING a DELIVERING)
 app.patch('/api/luggage/:id', async (req, res) => {
     try {
         const updatedItem = await Luggage.findByIdAndUpdate(
@@ -107,10 +105,31 @@ app.delete('/api/luggage/:id', async (req, res) => {
     res.json({ message: "Eliminato" });
 });
 
-// --- API USERS ---
+// --- API USERS (CORRETTE) ---
 app.get('/api/users', async (req, res) => {
     const users = await User.find();
     res.json(users);
+});
+
+// Aggiunta rotta POST per creare utenti
+app.post('/api/users', async (req, res) => {
+    try {
+        const newUser = new User(req.body);
+        await newUser.save();
+        res.status(201).json(newUser);
+    } catch (err) {
+        res.status(500).json({ error: "Errore nel salvataggio utente" });
+    }
+});
+
+// Aggiunta rotta DELETE per eliminare utenti
+app.delete('/api/users/:id', async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ message: "Utente eliminato correttamente" });
+    } catch (err) {
+        res.status(500).json({ error: "Errore nella cancellazione utente" });
+    }
 });
 
 // --- API ARCHIVIO ---
