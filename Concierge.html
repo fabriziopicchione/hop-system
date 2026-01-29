@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
-        body { background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.jpg') no-repeat center center fixed; background-size: cover; color: #c5a059; font-family: 'Times New Roman', serif; min-height: 100vh; margin: 0; padding-bottom: 500px; }
+        body { background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.jpg') no-repeat center center fixed; background-size: cover; color: #c5a059; font-family: 'Times New Roman', serif; min-height: 100vh; margin: 0; padding-bottom: 120px; transition: padding 0.4s ease; }
         .luggage-card { background: rgba(25, 25, 25, 0.95); border: 1px solid #c5a059; border-radius: 12px; padding: 15px; width: 220px; min-height: 240px; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
         .card-delivering { background: rgba(255, 193, 7, 0.2) !important; border: 2px solid #ffc107 !important; animation: card-pulse 2s infinite; }
         @keyframes card-pulse { 0% { box-shadow: 0 0 5px rgba(255,193,7,0.2); } 50% { box-shadow: 0 0 20px rgba(255,193,7,0.5); } 100% { box-shadow: 0 0 5px rgba(255,193,7,0.2); } }
@@ -23,7 +23,12 @@
         .btn-c { font-size: 0.65rem; font-weight: bold; padding: 6px 2px; border: 1px solid #c5a059; background: transparent; color: #c5a059; text-transform: uppercase; cursor: pointer; }
         .btn-active { background: #ffc107 !important; color: #000 !important; border-color: #ffc107 !important; }
         .btn-annulla { grid-column: span 2; border-color: #dc3545 !important; color: #dc3545 !important; }
-        .delivery-section { position: fixed; bottom: 70px; left: 0; width: 100%; background: rgba(10, 10, 10, 0.98); border-top: 2px solid #c5a059; padding: 15px 25px; height: 380px; z-index: 1000; }
+        
+        /* NUOVI STILI PER IL PANNELLO COLLASSABILE */
+        .delivery-section { position: fixed; bottom: 70px; left: 0; width: 100%; background: rgba(10, 10, 10, 0.98); border-top: 2px solid #c5a059; padding: 15px 25px; height: 380px; z-index: 1000; transition: transform 0.4s ease-in-out; }
+        .delivery-section.minimized { transform: translateY(330px); }
+        .toggle-delivery-btn { position: absolute; top: -32px; right: 40px; background: #c5a059; color: black; border: none; padding: 5px 20px; border-radius: 8px 8px 0 0; font-weight: bold; cursor: pointer; font-size: 0.75rem; letter-spacing: 1px; }
+        
         .main-table { width: 100%; color: white; font-size: 0.85rem; text-align: center; }
         .main-table th { background: #c5a059; color: black; padding: 8px; position: sticky; top: 0; }
         .bottom-nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: #000; border-top: 1px solid #c5a059; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 1100; }
@@ -64,7 +69,10 @@
         <div id="print-footer" style="text-align:center; font-size: 8pt; border-top: 1px dashed black;"></div>
     </div>
 
-    <div class="delivery-section">
+    <div class="delivery-section minimized" id="deliveryPanel">
+        <button class="toggle-delivery-btn" onclick="toggleDeliveryPanel()">
+            <i id="toggleIcon" class="fas fa-chevron-up me-2"></i>CONSEGNE
+        </button>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="text-success m-0">CONSEGNE DEL GIORNO</h6>
             <input type="text" id="searchDeliveries" class="form-control form-control-sm bg-dark text-white w-25" placeholder="Filtra..." onkeyup="renderAll()">
@@ -130,6 +138,16 @@
     const API_URL = '/api/luggage';
     const ARCHIVE_URL = '/api/archivio-dedicato';
     const USERS_URL = '/api/users';
+
+    // NUOVA FUNZIONE PER IL TOGGLE
+    function toggleDeliveryPanel() {
+        const panel = document.getElementById('deliveryPanel');
+        const icon = document.getElementById('toggleIcon');
+        const isMinimized = panel.classList.toggle('minimized');
+        
+        icon.className = isMinimized ? 'fas fa-chevron-up me-2' : 'fas fa-chevron-down me-2';
+        document.body.style.paddingBottom = isMinimized ? '120px' : '500px';
+    }
 
     function openManualModal() {
         new bootstrap.Modal(document.getElementById('manualEntryModal')).show();
