@@ -12,22 +12,24 @@
             color: #c5a059; 
             font-family: 'Times New Roman', serif; 
             min-height: 100vh;
-            padding-bottom: 380px; 
+            /* Padding ridotto di default perché la lista parte chiusa */
+            padding-bottom: 120px; 
+            transition: padding 0.4s ease;
         }
         .card-custom { 
             background: rgba(0, 0, 0, 0.85); 
             border: 1px solid #c5a059; 
             border-radius: 15px; 
-            padding: 2rem; 
+            padding: 1.5rem; /* Ridotto leggermente per schermi piccoli */
             height: 100%; 
         }
         .section-title { 
             color: #c5a059; 
             letter-spacing: 3px; 
-            font-size: 1.2rem; 
+            font-size: 1.1rem; 
             border-bottom: 1px solid #c5a059; 
-            padding-bottom: 15px; 
-            margin-bottom: 25px; 
+            padding-bottom: 10px; 
+            margin-bottom: 20px; 
             text-transform: uppercase;
             text-align: center;
         }
@@ -38,63 +40,78 @@
             color: black; 
             border: 2px solid #c5a059; 
             font-weight: bold; 
-            padding: 15px; 
+            padding: 12px; 
             letter-spacing: 2px; 
             width: 100%;
-            margin-top: 20px;
+            margin-top: 15px;
             transition: all 0.3s ease;
         }
-        .gold-btn:hover {
-            background-color: #856404;
-            border-color: #856404;
-            color: white;
-        }
+        .gold-btn:hover { background-color: #856404; border-color: #856404; color: white; }
 
-        .move-btn {
-            background: #333; 
-            color: #c5a059; 
-            border: 2px solid #c5a059;
-        }
-        .move-btn:hover {
-            background-color: #c5a059;
-            color: black;
-            border-color: #c5a059;
-        }
+        .move-btn { background: #333; color: #c5a059; border: 2px solid #c5a059; }
 
+        /* NUOVA SEZIONE LOG COLLASSABILE */
         .log-section { 
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(10, 10, 10, 0.98); 
             border-top: 2px solid #c5a059; 
-            padding: 15px 25px; height: 350px; z-index: 1000;
+            padding: 15px 25px; 
+            height: 380px; 
+            z-index: 1000;
+            transition: transform 0.4s ease-in-out;
         }
+        .log-section.minimized {
+            transform: translateY(310px); /* Lascia visibile solo la barra del titolo */
+        }
+        .toggle-log-btn {
+            position: absolute;
+            top: -32px;
+            right: 40px;
+            background: #c5a059;
+            color: black;
+            border: none;
+            padding: 5px 20px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
         .monitor-header { color: #856404; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .table-scroll-container { height: 260px; overflow-y: auto; border: 1px solid rgba(197, 160, 89, 0.1); }
         .table-dark-custom { width: 100%; color: white; font-size: 0.85rem; margin-bottom: 0; }
         .table-dark-custom th { background: #c5a059; color: black; position: sticky; top: 0; z-index: 10; padding: 10px; text-transform: uppercase; }
         .table-dark-custom td { padding: 10px; vertical-align: middle; border-bottom: 1px solid rgba(197, 160, 89, 0.1); }
+        
         .status-working { color: #ffc107; font-weight: bold; animation: blinker 1.5s linear infinite; }
         @keyframes blinker { 50% { opacity: 0.3; } }
         .btn-icon { background: transparent; border: 1px solid #c5a059; color: #c5a059; padding: 2px 8px; margin-left: 5px; border-radius: 4px; font-size: 0.8rem; }
-        .btn-icon:hover { background: #c5a059; color: black; }
         .btn-delete-icon { border-color: #dc3545; color: #dc3545; }
-        .btn-delete-icon:hover { background: #dc3545; color: white; }
         .badge-locked { color: #666; font-size: 0.75rem; font-style: italic; }
+
+        /* Media query per ottimizzare i form su schermi piccoli */
+        @media (max-height: 800px) {
+            .card-custom { padding: 1rem; }
+            .section-title { margin-bottom: 10px; }
+            .gold-btn { padding: 8px; margin-top: 10px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="index.html" style="color: #c5a059; text-decoration: none;">← HOME</a>
-            <h2 class="m-0" style="letter-spacing: 4px; font-weight: 300;">H.O.P. RECEPTION</h2>
+    <div class="container mt-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="index.html" style="color: #c5a059; text-decoration: none; font-weight: bold;">← HOME</a>
+            <h2 class="m-0" style="letter-spacing: 4px; font-weight: 300; font-size: 1.5rem;">H.O.P. RECEPTION</h2>
             <span id="sync-status" class="badge bg-success">SERVER SYNC</span>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-3">
             <div class="col-lg-6">
                 <div class="card card-custom">
                     <h5 class="section-title">Check-in</h5>
-                    <form id="luggageForm" class="row g-3">
+                    <form id="luggageForm" class="row g-2">
                         <div class="col-md-6"><label class="small text-white-50">TAG NUMBER </label><input type="text" id="barcode" class="form-control" required autofocus></div>
                         <div class="col-md-6"><label class="small text-white-50">ROOM NUMBER</label><input type="text" id="room" class="form-control" required></div>
                         <div class="col-12"><label class="small text-white-50">GUEST NAME</label><input type="text" id="guestName" class="form-control" required></div>
@@ -108,7 +125,7 @@
             <div class="col-lg-6">
                 <div class="card card-custom">
                     <h5 class="section-title">Room Move</h5>
-                    <form id="moveForm" class="row g-3">
+                    <form id="moveForm" class="row g-2">
                         <div class="col-12"><label class="small text-white-50">GUEST NAME</label><input type="text" id="moveGuestName" class="form-control" required></div>
                         <div class="col-6"><label class="small text-white-50">FROM ROOM</label><input type="text" id="moveFrom" class="form-control" required></div>
                         <div class="col-6"><label class="small text-white-50">TO ROOM</label><input type="text" id="moveTo" class="form-control" required></div>
@@ -120,7 +137,10 @@
         </div>
     </div>
 
-    <div class="log-section">
+    <div class="log-section minimized" id="logPanel">
+        <button class="toggle-log-btn" onclick="toggleLogPanel()">
+            <i id="toggleIcon" class="fas fa-chevron-up me-2"></i>MONITORING
+        </button>
         <div class="monitor-header">
             <span><i class="fas fa-list-ul me-2"></i>CONCIERGE LIVE MONITORING</span>
             <small class="text-white-50" style="font-size: 0.7rem;">Only tickets created at Reception can be modified</small>
@@ -138,6 +158,16 @@
     <script>
         const API_URL = '/api/luggage';
 
+        // FUNZIONE TOGGLE PER IL MONITOR
+        function toggleLogPanel() {
+            const panel = document.getElementById('logPanel');
+            const icon = document.getElementById('toggleIcon');
+            const isMinimized = panel.classList.toggle('minimized');
+            
+            icon.className = isMinimized ? 'fas fa-chevron-up me-2' : 'fas fa-chevron-down me-2';
+            document.body.style.paddingBottom = isMinimized ? '120px' : '400px';
+        }
+
         async function fetchServerLog() {
             try {
                 const response = await fetch(API_URL);
@@ -149,7 +179,7 @@
                     const actions = isManual ? `<span class="badge-locked"><i class="fas fa-lock"></i> Locked</span>` : 
                         `<button class="btn-icon" onclick="recall(${item.id}, '${item.barcode}', '${item.guest}', '${item.room}', '${item.pcs}')"><i class="fas fa-edit"></i></button>
                          <button class="btn-icon btn-delete-icon" onclick="del(${item.id})"><i class="fas fa-trash"></i></button>`;
-                    /* CORREZIONE: Stato IN PROGRESS giallo lampeggiante se DELIVERING */
+                    
                     const statusHtml = isWorking 
                         ? '<span class="status-working">IN PROGRESS</span>' 
                         : '<span class="text-danger small">PENDING</span>';
@@ -182,7 +212,6 @@
             e.preventDefault();
             const barcodeVal = document.getElementById('barcode').value.trim();
             const item = {
-                /* CORREZIONE: Usa barcode manuale se presente, altrimenti genera 6 cifre nel send */
                 barcode: barcodeVal,
                 guest: document.getElementById('guestName').value,
                 room: document.getElementById('room').value,
@@ -212,7 +241,6 @@
             const enrichedData = {
                 ...data,
                 start: Date.now(), 
-                /* CORREZIONE: Mantieni barcode manuale se inserito */
                 barcode: (data.barcode && data.barcode !== '' && data.barcode !== 'MOVE') ? data.barcode : (data.barcode === 'MOVE' ? 'MOVE' : Math.floor(100000 + Math.random() * 900000).toString())
             };
 
