@@ -20,6 +20,7 @@ mongoose.connect(MONGODB_URI)
 // --- SCHEMI E MODELLI ---
 
 const luggageSchema = new mongoose.Schema({
+    barcode: String, // AGGIUNTO: Permette il salvataggio del Tag Number
     guest: String, 
     room: String, 
     pcs: mongoose.Schema.Types.Mixed,
@@ -43,72 +44,61 @@ const depositSchema = new mongoose.Schema({
     date: String, 
     time: String,
     timestamp: Number, 
-    releaseDate: String, 
-    releaseTime: String, 
+    releaseDate: String,
+    releaseTime: String,
     releasePorter: String
 });
 
 const userSchema = new mongoose.Schema({
     nome: String,
     cognome: String,
-    codice: String, 
-    role: String
+    codice: String,
+    ruolo: String
+});
+
+const archivioDedicatoSchema = new mongoose.Schema({
+    barcode: String, // AGGIUNTO: Per lo storico tag in archivio
+    guest: String,
+    room: String,
+    pcs: mongoose.Schema.Types.Mixed,
+    type: String,
+    status: String,
+    user: String,
+    durata: String,
+    time: String,
+    deliveryDate: String
 });
 
 const Luggage = mongoose.model('Luggage', luggageSchema);
-const ArchivioDedicato = mongoose.model('ArchivioDedicato', luggageSchema);
 const Deposit = mongoose.model('Deposit', depositSchema);
-const ArchivioDeposit = mongoose.model('ArchivioDeposit', depositSchema);
 const User = mongoose.model('User', userSchema);
+const ArchivioDedicato = mongoose.model('ArchivioDedicato', archivioDedicatoSchema);
+const ArchivioDeposit = mongoose.model('ArchivioDeposit', depositSchema);
 
-// --- API UTENTI (STAFF) ---
+// --- API LUGGAGE ---
 
-app.get('/api/users', async (req, res) => {
-    try {
-        const users = await User.find();
-        res.json(users);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.post('/api/users', async (req, res) => {
-    try {
-        const newUser = new User(req.body);
-        await newUser.save();
-        res.json(newUser);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.delete('/api/users/:id', async (req, res) => {
-    try {
-        await User.findByIdAndDelete(req.params.id);
-        res.json({ message: "Utente rimosso" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// --- API CONCIERGE (LUGGAGE) ---
 app.get('/api/luggage', async (req, res) => {
     const data = await Luggage.find();
     res.json(data);
 });
 
-// MODIFICATO: Forza lo stato PENDING per i nuovi bagagli
 app.post('/api/luggage', async (req, res) => {
+    const newItem = new Luggage(req.body);
+    await newItem.save();
+    res.json(newItem);
+});
+
+// NUOVA ROTTA: Permette il cambio di status (es. da PENDING a DELIVERING)
+app.patch('/api/luggage/:id', async (req, res) => {
     try {
-        const luggageData = {
-            ...req.body,
-            status: 'PENDING' // Assicura che il ticket sia visibile al porter
-        };
-        const newItem = new Luggage(luggageData);
-        await newItem.save();
-        res.json(newItem);
+        const updatedItem = await Luggage.findByIdAndUpdate(
+            req.params.id, 
+            { status: req.body.status }, 
+            { new: true }
+        );
+        res.json(updatedItem);
     } catch (err) {
-        res.status(500).json({ error: "Errore nel salvataggio del bagaglio" });
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -117,11 +107,24 @@ app.delete('/api/luggage/:id', async (req, res) => {
     res.json({ message: "Eliminato" });
 });
 
-// --- API ARCHIVIO CONCIERGE ---
+// --- API USERS ---
+app.get('/api/users', async (req, res) => {
+    const users = await User.find();
+    res.json(users);
+});
+
+// --- API ARCHIVIO ---
 app.get('/api/archivio-dedicato', async (req, res) => {
-    const { date } = req.query;
-    const filter = date ? { deliveryDate: date } : {};
-    const results = await ArchivioDedicato.find(filter);
+    const { date, filter } = req.query;
+    let query = {};
+    if (date) query.deliveryDate = date;
+    if (filter) {
+        query.$or = [
+            { guest: new RegExp(filter, 'i') },
+            { room: new RegExp(filter, 'i') }
+        ];
+    }
+    const results = await ArchivioDedicato.find(query);
     res.json(results);
 });
 
@@ -158,13 +161,10 @@ app.post('/api/deposit/release/:id', async (req, res) => {
             res.json({ message: "Riconsegnato" });
         }
     } catch (err) {
-        res.status(500).send("Errore");
+        res.status(500).json({ error: err.message });
     }
 });
 
-app.get('/api/deposit/history', async (req, res) => {
-    const history = await ArchivioDeposit.find().sort({ timestamp: -1 }).limit(100);
-    res.json(history);
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
-
-app.listen(PORT, () => console.log(`Server HOP attivo sulla porta ${PORT}`));
