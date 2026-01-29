@@ -33,7 +33,6 @@
         }
         .form-control { background: rgba(255, 255, 255, 0.95); border: 1px solid #c5a059; color: #000; }
         
-        /* --- STILE PULSANTI --- */
         .gold-btn { 
             background-color: #c5a059; 
             color: black; 
@@ -56,14 +55,12 @@
             color: #c5a059; 
             border: 2px solid #c5a059;
         }
-        /* Effetto hover per Room Move */
         .move-btn:hover {
             background-color: #c5a059;
             color: black;
             border-color: #c5a059;
         }
 
-        /* --- LIVE MONITOR --- */
         .log-section { 
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(10, 10, 10, 0.98); 
@@ -148,7 +145,7 @@
                 const tbody = document.getElementById('server-log-body');
                 tbody.innerHTML = data.reverse().map(item => {
                     const isWorking = item.status === 'DELIVERING';
-                    const isManual = item.barcode === 'MANUAL';
+                    const isManual = !item.barcode || item.barcode.length === 6; // Identifica i manuali dai 6 cifre
                     const actions = isManual ? `<span class="badge-locked"><i class="fas fa-lock"></i> Locked</span>` : 
                         `<button class="btn-icon" onclick="recall(${item.id}, '${item.barcode}', '${item.guest}', '${item.room}', '${item.pcs}')"><i class="fas fa-edit"></i></button>
                          <button class="btn-icon btn-delete-icon" onclick="del(${item.id})"><i class="fas fa-trash"></i></button>`;
@@ -205,8 +202,21 @@
         });
 
         async function send(data, form) {
-            await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-            form.reset(); if(document.getElementById('pcs')) document.getElementById('pcs').value = 1;
+            // CORREZIONE: Assegnazione start e barcode univoco a 6 cifre se necessario
+            const enrichedData = {
+                ...data,
+                start: Date.now(), 
+                barcode: (data.barcode && data.barcode !== 'MOVE') ? data.barcode : Math.floor(100000 + Math.random() * 900000).toString()
+            };
+
+            await fetch(API_URL, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(enrichedData) 
+            });
+            
+            form.reset(); 
+            if(document.getElementById('pcs')) document.getElementById('pcs').value = 1;
             fetchServerLog();
             document.getElementById('barcode').focus();
         }
