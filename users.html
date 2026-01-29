@@ -92,19 +92,28 @@
         }
     }
 
-    async function addUser() {
-        const data = {
-            nome: document.getElementById('userNome').value.trim(),
-            cognome: document.getElementById('userCognome').value.trim(),
-            role: document.getElementById('userRole').value,
-            codice: document.getElementById('userPin').value.trim()
-        };
+   async function addUser() {
+    const nomeInput = document.getElementById('userNome').value.trim();
+    const cognomeInput = document.getElementById('userCognome').value.trim();
+    const pinInput = document.getElementById('userPin').value.trim();
 
-        if (!data.nome || !data.cognome || !data.codice) {
-            alert("Compila tutti i campi!");
-            return;
-        }
+    if (!nomeInput || !cognomeInput || !pinInput) {
+        alert("Compila tutti i campi prima di aggiungere.");
+        return;
+    }
 
+    // Creiamo l'oggetto inviando il PIN in tutti i formati comuni
+    const data = {
+        nome: nomeInput,
+        cognome: cognomeInput,
+        role: document.getElementById('userRole').value,
+        codice: pinInput, // Quello che usi attualmente
+        pin: pinInput     // Alternativa comune nei database
+    };
+
+    console.log("Invio dati al server:", data);
+
+    try {
         const res = await fetch(USERS_API, { 
             method: 'POST', 
             headers: {'Content-Type': 'application/json'}, 
@@ -112,17 +121,21 @@
         });
 
         if (res.ok) {
-            // Pulisce i campi dopo il successo
+            alert("Utente aggiunto con successo!");
             document.getElementById('userNome').value = "";
             document.getElementById('userCognome').value = "";
             document.getElementById('userPin').value = Math.floor(1000 + Math.random() * 9000);
             loadUsers();
         } else {
-            const errData = await res.json().catch(() => ({}));
-            alert("Errore del server: " + (errData.message || "Impossibile salvare l'utente. Verifica se il PIN è già in uso."));
+            // Proviamo a leggere il motivo esatto dell'errore dal server
+            const errorDetail = await res.text();
+            console.error("Dettaglio errore server:", errorDetail);
+            alert("Il server ha rifiutato il salvataggio. Controlla la console (F12) per i dettagli.");
         }
+    } catch (err) {
+        alert("Errore di connessione: il server è raggiungibile?");
     }
-
+}
     function openEdit(i) {
         const u = allUsers[i];
         document.getElementById('editUserId').value = u._id;
@@ -184,4 +197,5 @@
 </script>
 </body>
 </html>
+
 
