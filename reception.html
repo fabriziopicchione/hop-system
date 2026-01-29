@@ -145,12 +145,17 @@
                 const tbody = document.getElementById('server-log-body');
                 tbody.innerHTML = data.reverse().map(item => {
                     const isWorking = item.status === 'DELIVERING';
-                    const isManual = !item.barcode || item.barcode.length === 6; // Identifica i manuali dai 6 cifre
+                    const isManual = !item.barcode || item.barcode.length === 6; 
                     const actions = isManual ? `<span class="badge-locked"><i class="fas fa-lock"></i> Locked</span>` : 
                         `<button class="btn-icon" onclick="recall(${item.id}, '${item.barcode}', '${item.guest}', '${item.room}', '${item.pcs}')"><i class="fas fa-edit"></i></button>
                          <button class="btn-icon btn-delete-icon" onclick="del(${item.id})"><i class="fas fa-trash"></i></button>`;
+                    /* CORREZIONE: Stato IN PROGRESS giallo lampeggiante se DELIVERING */
+                    const statusHtml = isWorking 
+                        ? '<span class="status-working">IN PROGRESS</span>' 
+                        : '<span class="text-danger small">PENDING</span>';
+
                     return `<tr><td>${item.time}</td><td class="fw-bold">${item.guest}</td><td><span style="color:#c5a059">R. ${item.room}</span></td>
-                        <td>${item.pcs}</td><td>${isWorking ? '<span class="status-working">IN PROGRESS</span>' : '<span class="text-danger small">PENDING</span>'}</td><td class="text-end">${actions}</td></tr>`
+                        <td>${item.pcs}</td><td>${statusHtml}</td><td class="text-end">${actions}</td></tr>`
                 }).join('');
             } catch (err) {}
         }
@@ -175,8 +180,10 @@
 
         document.getElementById('luggageForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            const barcodeVal = document.getElementById('barcode').value.trim();
             const item = {
-                barcode: document.getElementById('barcode').value,
+                /* CORREZIONE: Usa barcode manuale se presente, altrimenti genera 6 cifre nel send */
+                barcode: barcodeVal,
                 guest: document.getElementById('guestName').value,
                 room: document.getElementById('room').value,
                 pcs: document.getElementById('checkinNotes').value ? `${document.getElementById('pcs').value} (${document.getElementById('checkinNotes').value})` : document.getElementById('pcs').value,
@@ -202,11 +209,11 @@
         });
 
         async function send(data, form) {
-            // CORREZIONE: Assegnazione start e barcode univoco a 6 cifre se necessario
             const enrichedData = {
                 ...data,
                 start: Date.now(), 
-                barcode: (data.barcode && data.barcode !== 'MOVE') ? data.barcode : Math.floor(100000 + Math.random() * 900000).toString()
+                /* CORREZIONE: Mantieni barcode manuale se inserito */
+                barcode: (data.barcode && data.barcode !== '' && data.barcode !== 'MOVE') ? data.barcode : (data.barcode === 'MOVE' ? 'MOVE' : Math.floor(100000 + Math.random() * 900000).toString())
             };
 
             await fetch(API_URL, { 
