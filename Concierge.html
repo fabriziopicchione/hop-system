@@ -65,12 +65,15 @@
     <div id="luggage-list" class="d-flex flex-wrap gap-4"></div>
     
     <div id="thermal-print-area">
-        <div style="text-align:center;"><b>HOP - Rome Cavalieri</b></div>
-        <div id="print-content" style="text-align:center;"></div>
-        <div id="tag-id-display" style="text-align:center; font-size: 20pt; font-weight: bold; border: 2px solid black; margin: 5px 0;"></div>
-        <div style="text-align:center;"><svg id="barcode-svg"></svg></div>
-        <div id="print-footer" style="text-align:center; font-size: 8pt; border-top: 1px dashed black;"></div>
+    <div style="text-align:center;">
+        <img src="logo-hop.png" alt="Logo" style="height: 50px; margin-bottom: 10px;">
+        <div style="font-size: 10pt; font-weight: bold;">HOP - Rome Cavalieri</div>
     </div>
+    <div id="print-content" style="text-align:center;"></div>
+    <div id="tag-id-display" style="text-align:center; font-size: 20pt; font-weight: bold; border: 2px solid black; margin: 5px 0;"></div>
+    <div style="text-align:center;"><svg id="barcode-svg"></svg></div>
+    <div id="print-footer" style="text-align:center; font-size: 8pt; border-top: 1px dashed black;"></div>
+</div>
 
     <div class="delivery-section minimized" id="deliveryPanel">
         <button class="toggle-delivery-btn" onclick="toggleDeliveryPanel()">
@@ -173,8 +176,7 @@
         await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
         bootstrap.Modal.getInstance(document.getElementById('manualEntryModal')).hide();
         renderAll();
-        doPrint(barcode, data.room, data.guest, data.pcs);
-    }
+        }
 
     async function renderAll() {
         try {
@@ -256,5 +258,6 @@
 </script>
 </body>
 </html>
+
 
 
