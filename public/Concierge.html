@@ -172,7 +172,8 @@
         }, { once: true });
 
         function playSound(type) {
-            if (!audioCtx || audioCtx.state === 'suspended') return;
+            if (!audioEnabled || !audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
 
             const output = audioCtx.createGain();
             output.connect(audioCtx.destination);
