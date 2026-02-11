@@ -167,7 +167,19 @@ body {
 }
 
 .delivery-section.minimized {
-    transform: translateY(330px);
+    transform: translateY(290px);
+}
+
+.input-group-text {
+    background-color: #212529 !important;
+    border-color: #6c757d !important;
+    color: #c5a059 !important;
+}
+
+#searchDeliveries {
+    background-color: #212529 !important;
+    border-color: #6c757d !important;
+    color: white !important;
 }
 
 .toggle-delivery-btn {

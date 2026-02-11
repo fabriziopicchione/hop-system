@@ -14,7 +14,7 @@
 <body>
     <div class="container-fluid px-4 mt-3">
         <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-4">
-            <h4 class="mb-0 d-flex align-items-center text-warning" style="letter-spacing: 3px;">
+            <h4 class="mb-0 d-flex align-items-center" style="letter-spacing: 3px; color: #c5a059;">
                 <img src="images/logo-hop.png" alt="Logo" style="height: 40px; margin-right: 15px; border-radius: 5px;">
                 H.O.P. CONCIERGE
             </h4>
@@ -48,8 +48,12 @@
             </button>
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="text-success m-0">CONSEGNE DEL GIORNO</h6>
-                <input type="text" id="searchDeliveries" class="form-control form-control-sm bg-dark text-white w-25"
-                    placeholder="Filtra..." onkeyup="renderAll()">
+                <div class="input-group input-group-sm w-25">
+                    <span class="input-group-text bg-dark text-white border-secondary"><i
+                            class="fas fa-search"></i></span>
+                    <input type="text" id="searchDeliveries" class="form-control bg-dark text-white border-secondary"
+                        placeholder="Cerca..." onkeyup="renderAll()">
+                </div>
             </div>
             <div style="height: 280px; overflow-y: auto;">
                 <table class="main-table table table-dark table-sm">
