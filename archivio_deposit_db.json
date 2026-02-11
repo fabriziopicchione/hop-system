@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1769009453184,
+    "tag": "777777",
+    "guest": "SETTE Pino",
+    "pcs": "1",
+    "location": "DEPOSITO 2",
+    "notes": "amde jdioepjdpewjd dkjeopwdkjepow dkeopwkdpoewkd dewkdewpokdpewd kdopekdpoew ritira il 5943ui49204  kpokjpo",
+    "user": "Marco Rossi",
+    "date": "21/01/2026",
+    "time": "04:30 PM",
+    "timestamp": 1769009453184,
+    "releaseDate": "21/01/2026",
+    "releaseTime": "16:38",
+    "releasePorter": "Marco Rossi"
+  },
+  {
+    "id": 1769077212939,
+    "tag": "777777",
+    "guest": "SETTE Pino",
+    "pcs": "1",
+    "location": "BACK CONCIERGE",
+    "notes": "2 poezzi",
+    "user": "Marco Rossi",
+    "date": "22/01/2026",
+    "time": "11:20 AM",
+    "timestamp": 1769077212938,
+    "releaseDate": "22/01/2026",
+    "releaseTime": "11:20",
+    "releasePorter": "Marco Rossi"
+  },
+  {
+    "id": 1769094265882,
+    "tag": "13246",
+    "guest": "simone",
+    "pcs": "2",
+    "location": "DEPOSITO 2",
+    "notes": "ritira i",
+    "user": "Luca Rossi",
+    "date": "22/01/2026",
+    "time": "16:04",
+    "timestamp": 1769094265882,
+    "releaseDate": "26/01/2026",
+    "releaseTime": "10:02",
+    "releasePorter": "Luca Rossi"
+  },
+  {
+    "id": 1769501654325,
+    "tag": "777777",
+    "guest": "SETTE Pino",
+    "pcs": "1",
+    "location": "DEPOSITO 2",
+    "notes": "",
+    "user": "Marco Rossi",
+    "date": "27/01/2026",
+    "time": "09:14",
+    "timestamp": 1769501654325,
+    "releaseDate": "27/01/2026",
+    "releaseTime": "09:14",
+    "releasePorter": "Luca Rossi"
+  }
+]

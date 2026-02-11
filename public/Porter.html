@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PORTER MOBILE - H.O.P.</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/porter.css">
+</head>
+
+<body>
+
+    <div class="header-mobile">
+        <img src="images/logo-hop.png" alt="Logo" class="logo-img">
+
+        <div class="header-text">
+            <h4>H.O.P. PORTER</h4>
+            <small>Delivery Management</small>
+        </div>
+
+        <div class="header-datetime">
+            <div id="liveTime">00:00</div>
+            <small id="liveDate">--/--/--</small>
+        </div>
+    </div>
+
+    <div id="tickets-container">
+    </div>
+
+    <div class="modal fade" id="pinModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-luxury">
+                <div class="modal-body text-center p-4">
+                    <h5 class="mb-4 fw-bold">CONFERMA CONSEGNA</h5>
+                    <div id="pinDisplay" class="pin-display">----</div>
+                    <div class="numpad">
+                        <button class="num-btn" onclick="addPin('1')">1</button>
+                        <button class="num-btn" onclick="addPin('2')">2</button>
+                        <button class="num-btn" onclick="addPin('3')">3</button>
+                        <button class="num-btn" onclick="addPin('4')">4</button>
+                        <button class="num-btn" onclick="addPin('5')">5</button>
+                        <button class="num-btn" onclick="addPin('6')">6</button>
+                        <button class="num-btn" onclick="addPin('7')">7</button>
+                        <button class="num-btn" onclick="addPin('8')">8</button>
+                        <button class="num-btn" onclick="addPin('9')">9</button>
+                        <button class="num-btn btn-action" onclick="clearPin()"><i
+                                class="fas fa-backspace"></i></button>
+                        <button class="num-btn" onclick="addPin('0')">0</button>
+                        <button class="num-btn btn-action text-danger" data-bs-dismiss="modal"><i
+                                class="fas fa-times"></i></button>
+                    </div>
+                    <button type="button" class="btn-complete w-100" id="confirmBtn" onclick="validateAndComplete()"
+                        style="opacity: 0.5;" disabled>CHIUDI TICKET</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/custom-ui.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Variables from app.js are available (API_URL, etc)
+        let currentTicket = null;
+        let currentPin = "";
+        let pinModal = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            pinModal = new bootstrap.Modal(document.getElementById('pinModal'));
+            updateClockInternal();
+            setInterval(updateClockInternal, 60000);
+            fetchTickets();
+        });
+
+        // Custom clock function for Porter page specific format
+        function updateClockInternal() {
+            const now = new Date();
+            document.getElementById('liveTime').innerText = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('liveDate').innerText = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        }
+
+        function addPin(num) {
+            if (currentPin.length < 4) {
+                currentPin += num;
+                updatePinDisplay();
+            }
+        }
+
+        function clearPin() {
+            currentPin = "";
+            updatePinDisplay();
+        }
+
+        function updatePinDisplay() {
+            const display = document.getElementById('pinDisplay');
+            const btn = document.getElementById('confirmBtn');
+            display.innerText = currentPin.length > 0 ? currentPin.replace(/./g, '*') : '----';
+            if (currentPin.length === 4) {
+                btn.disabled = false; btn.style.opacity = "1";
+            } else {
+                btn.disabled = true; btn.style.opacity = "0.5";
+            }
+        }
+
+        async function fetchTickets() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                const container = document.getElementById('tickets-container');
+                const activeTickets = data.filter(t => t.status === 'DELIVERING');
+
+                if (activeTickets.length === 0) {
+                    container.innerHTML = '<div class="text-center mt-5 text-white opacity-50">Nessuna consegna in corso</div>';
+                    return;
+                }
+
+                container.innerHTML = activeTickets.map(t => `
+                    <div class="ticket-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="room-badge">R. ${t.room}</span>
+                            <span style="color:white; font-size:0.8rem; opacity:0.7;">TAG: #${t.barcode || '---'}</span>
+                        </div>
+                        <h5 class="mb-1 fw-bold text-white">${t.guest}</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-uppercase" style="letter-spacing:1px; color:var(--gold);">${t.type || 'LUGGAGE'}</small>
+                            <span class="badge border border-warning text-warning">${t.pcs} PCS</span>
+                        </div>
+                        <button class="btn-complete" onclick="openPinPrompt('${t._id}', '${t.guest}', '${t.room}', '${t.pcs}', '${t.start}', '${t.type}', '${t.barcode}')">
+                            Completa Consegna
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        function openPinPrompt(id, guest, room, pcs, start, type, barcode) {
+            currentTicket = { id, guest, room, pcs, start, type, barcode };
+            clearPin();
+            pinModal.show();
+        }
+
+        async function validateAndComplete() {
+            if (currentPin.length < 4) return;
+            try {
+                // Server-side validation
+                const resLog = await fetch('/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin: currentPin })
+                });
+                const authData = await resLog.json();
+
+                if (authData.success) {
+                    const foundUser = authData.user;
+                    const porterName = foundUser ? `${foundUser.nome} ${foundUser.cognome}` : "Admin";
+                    const { id, guest, room, pcs, start, type, barcode } = currentTicket;
+                    const startTime = start ? parseInt(start) : Date.now();
+                    const durataMin = Math.round((Date.now() - startTime) / 60000);
+
+                    const archiveData = {
+                        barcode, guest, room, pcs, type: type || 'Standard',
+                        status: 'COMPLETED', user: porterName, durata: durataMin + " min",
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        deliveryDate: new Date().toISOString().split('T')[0]
+                    };
+
+                    await fetch(ARCHIVE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(archiveData) });
+                    await fetch(API_URL + '/' + id, { method: 'DELETE' });
+                    pinModal.hide();
+                    fetchTickets();
+                } else {
+                    await showCustomAlert("PIN ERRATO!");
+                    clearPin();
+                }
+            } catch (err) { await showCustomAlert("Errore connessione!"); }
+        }
+
+        setInterval(fetchTickets, 8000);
+    </script>
+</body>
+
+</html>

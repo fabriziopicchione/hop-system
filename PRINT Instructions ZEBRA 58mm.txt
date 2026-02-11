@@ -1,0 +1,17 @@
+Configurazione del Driver Zebra (Fondamentale)
+Le stampanti Zebra non "capiscono" automaticamente la fine dell'etichetta se stampi da un browser senza impostare il driver. 
+Per far funzionare il tasto di stampa correttamente, segui questi passaggi sul PC collegato alla stampante:
+
+Impostazioni di Stampa di Windows: Vai su Dispositivi e Stampanti > tasto destro sulla Zebra > Preferenze di stampa.
+
+Dimensioni Etichetta: Imposta la larghezza e l'altezza esatte del rotolo che stai usando (es. 58mm x 100mm).
+
+Tipo di Supporto: Imposta su "Termica Diretta" e "Etichette con spazi" (Web Sensing).
+
+Browser (Chrome/Edge): Quando appare la finestra di anteprima di stampa:
+
+Seleziona la Zebra come destinazione.
+
+In "Altre impostazioni", imposta i Margini su "Nessuno".
+
+Assicurati che la "Scala" sia impostata su 100 o "Adatta all'area stampabile".

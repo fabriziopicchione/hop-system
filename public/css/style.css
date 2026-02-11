@@ -1,0 +1,78 @@
+:root {
+    --gold: #c5a059;
+}
+
+body {
+    background-color: #000;
+    color: white;
+    font-family: 'Times New Roman', serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Common Utility Classes */
+.text-gold {
+    color: var(--gold) !important;
+}
+
+.bg-gold {
+    background-color: var(--gold) !important;
+}
+
+.border-gold {
+    border-color: var(--gold) !important;
+}
+
+.btn-gold {
+    background-color: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    transition: 0.3s;
+}
+
+.btn-gold:hover {
+    background-color: var(--gold);
+    color: #000;
+}
+
+.nav-btn-gold {
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+    padding: 8px 20px;
+    border: 1px solid var(--gold);
+    background: transparent;
+    transition: 0.3s;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+}
+
+
+/* Custom UI and Luxury Modal Styles */
+.custom-modal-content,
+.modal-content-luxury {
+    background: rgba(15, 15, 15, 0.98) !important;
+    border: 2px solid var(--gold) !important;
+    border-radius: 15px !important;
+    color: var(--gold);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.luxury-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid #444 !important;
+    color: var(--gold) !important;
+    letter-spacing: 2px;
+}
+
+.luxury-input:focus {
+    background: #222 !important;
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 10px rgba(197, 160, 89, 0.2) !important;
+    outline: none;
+}

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reception - Rome Cavalieri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Specific Reception Styles */
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url('images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            padding-bottom: 120px;
+            transition: padding 0.4s ease;
+        }
+
+        .card-custom {
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #c5a059;
+            border-radius: 15px;
+            padding: 1.5rem;
+            height: 100%;
+        }
+
+        .section-title {
+            color: #c5a059;
+            letter-spacing: 3px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #c5a059;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #c5a059;
+            color: #000;
+        }
+
+        .gold-btn {
+            background-color: #c5a059;
+            color: black;
+            border: 2px solid #c5a059;
+            font-weight: bold;
+            padding: 12px;
+            letter-spacing: 2px;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .gold-btn:hover {
+            background-color: #856404;
+            border-color: #856404;
+            color: white;
+        }
+
+        .move-btn {
+            background: #333;
+            color: #c5a059;
+            border: 2px solid #c5a059;
+        }
+
+        .log-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.98);
+            border-top: 2px solid #c5a059;
+            padding: 15px 25px;
+            height: 380px;
+            z-index: 1000;
+            transition: transform 0.4s ease-in-out;
+        }
+
+        .log-section.minimized {
+            transform: translateY(310px);
+        }
+
+        .toggle-log-btn {
+            position: absolute;
+            top: -32px;
+            right: 40px;
+            background: #c5a059;
+            color: black;
+            border: none;
+            padding: 5px 20px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .monitor-header {
+            color: #856404;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-scroll-container {
+            height: 260px;
+            overflow-y: auto;
+            border: 1px solid rgba(197, 160, 89, 0.1);
+        }
+
+        .table-dark-custom {
+            width: 100%;
+            color: white;
+            font-size: 0.85rem;
+            margin-bottom: 0;
+        }
+
+        .table-dark-custom th {
+            background: #c5a059;
+            color: black;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 10px;
+            text-transform: uppercase;
+        }
+
+        .table-dark-custom td {
+            padding: 10px;
+            vertical-align: middle;
+            border-bottom: 1px solid rgba(197, 160, 89, 0.1);
+        }
+
+        .status-working {
+            color: #ffc107;
+            font-weight: bold;
+            animation: blinker 1.5s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: 1px solid #c5a059;
+            color: #c5a059;
+            padding: 2px 8px;
+            margin-left: 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .btn-delete-icon {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .badge-locked {
+            color: #666;
+            font-size: 0.75rem;
+            font-style: italic;
+        }
+
+        @media (max-height: 800px) {
+            .card-custom {
+                padding: 1rem;
+            }
+
+            .section-title {
+                margin-bottom: 10px;
+            }
+
+            .gold-btn {
+                padding: 8px;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex gap-2">
+                <a href="hub.html" class="nav-btn-gold" style="border:none;">← HOME</a>
+                <button class="nav-btn-gold" onclick="openConciergeLogin()">CONCIERGE</button>
+            </div>
+            <div class="d-flex align-items-center">
+                <img src="images/logo-hop.png" alt="Logo" style="height: 40px; margin-right: 15px;">
+                <h2 class="m-0 text-gold" style="letter-spacing: 4px; font-weight: 300; font-size: 1.5rem;">H.O.P.
+                    RECEPTION</h2>
+            </div>
+            <span id="sync-status" class="badge bg-success">SERVER SYNC</span>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="card card-custom">
+                    <h5 class="section-title">Check-in</h5>
+                    <form id="luggageForm" class="row g-2">
+                        <div class="col-md-6"><label class="small text-white-50">TAG NUMBER </label><input type="text"
+                                id="barcode" class="form-control" required autofocus></div>
+                        <div class="col-md-6"><label class="small text-white-50">ROOM NUMBER</label><input type="text"
+                                id="room" class="form-control" required></div>
+                        <div class="col-12"><label class="small text-white-50">GUEST NAME</label><input type="text"
+                                id="guestName" class="form-control" required></div>
+                        <div class="col-md-4"><label class="small text-white-50">PCS</label><input type="number"
+                                id="pcs" class="form-control" value="1"></div>
+                        <div class="col-md-8"><label class="small text-white-50">NOTES</label><input type="text"
+                                id="checkinNotes" class="form-control" maxlength="25"></div>
+                        <button type="submit" class="btn gold-btn">SEND</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card card-custom">
+                    <h5 class="section-title">Room Move</h5>
+                    <form id="moveForm" class="row g-2">
+                        <div class="col-12"><label class="small text-white-50">GUEST NAME</label><input type="text"
+                                id="moveGuestName" class="form-control" required></div>
+                        <div class="col-6"><label class="small text-white-50">FROM ROOM</label><input type="text"
+                                id="moveFrom" class="form-control" required></div>
+                        <div class="col-6"><label class="small text-white-50">TO ROOM</label><input type="text"
+                                id="moveTo" class="form-control" required></div>
+                        <div class="col-12"><label class="small text-white-50">NOTES</label><input type="text"
+                                id="moveNotes" class="form-control" maxlength="25"></div>
+                        <button type="submit" class="btn gold-btn move-btn">SEND</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="log-section minimized" id="logPanel">
+        <button class="toggle-log-btn" onclick="toggleLogPanel()">
+            <i id="toggleIcon" class="fas fa-chevron-up me-2"></i>MONITORING
+        </button>
+        <div class="monitor-header">
+            <span><i class="fas fa-list-ul me-2"></i>CONCIERGE LIVE MONITORING</span>
+            <small class="text-white-50" style="font-size: 0.7rem;">Only tickets created at Reception can be
+                modified</small>
+        </div>
+        <div class="table-scroll-container">
+            <table class="table-dark-custom">
+                <thead>
+                    <tr>
+                        <th>TIME</th>
+                        <th>GUEST NAME</th>
+                        <th>ROOM N.</th>
+                        <th>DETAILS</th>
+                        <th>STATUS</th>
+                        <th class="text-end">EDIT / DELETE</th>
+                    </tr>
+                </thead>
+                <tbody id="server-log-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/custom-ui.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Variables from app.js are available (API_URL)
+
+        function toggleLogPanel() {
+            const panel = document.getElementById('logPanel');
+            const icon = document.getElementById('toggleIcon');
+            const isMinimized = panel.classList.toggle('minimized');
+
+            icon.className = isMinimized ? 'fas fa-chevron-up me-2' : 'fas fa-chevron-down me-2';
+            document.body.style.paddingBottom = isMinimized ? '120px' : '400px';
+        }
+
+        async function fetchServerLog() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                const tbody = document.getElementById('server-log-body');
+                tbody.innerHTML = data.reverse().map(item => {
+                    const isWorking = item.status === 'DELIVERING';
+                    const isManual = !item.barcode || item.barcode.length === 6;
+                    const actions = isManual ? `<span class="badge-locked"><i class="fas fa-lock"></i> Locked</span>` :
+                        `<button class="btn-icon" onclick="recall('${item._id}', '${item.barcode}', '${item.guest}', '${item.room}', '${item.pcs}')"><i class="fas fa-edit"></i></button>
+                         <button class="btn-icon btn-delete-icon" onclick="del('${item._id}')"><i class="fas fa-trash"></i></button>`;
+
+                    const statusHtml = isWorking
+                        ? '<span class="status-working">IN PROGRESS</span>'
+                        : '<span class="text-danger small">PENDING</span>';
+
+                    return `<tr><td>${item.time}</td><td class="fw-bold">${item.guest}</td><td><span style="color:#c5a059">R. ${item.room}</span></td>
+                        <td>${item.pcs}</td><td>${statusHtml}</td><td class="text-end">${actions}</td></tr>`
+                }).join('');
+            } catch (err) { }
+        }
+
+        async function recall(id, barcode, guest, room, pcs) {
+            if (barcode === 'MOVE') {
+                const parts = room.split(' → ');
+                document.getElementById('moveGuestName').value = guest;
+                document.getElementById('moveFrom').value = parts[0];
+                document.getElementById('moveTo').value = parts[1];
+            } else {
+                document.getElementById('barcode').value = barcode;
+                document.getElementById('guestName').value = guest;
+                document.getElementById('room').value = room;
+                document.getElementById('pcs').value = parseInt(pcs) || 1;
+            }
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            fetchServerLog();
+        }
+
+        async function del(id) { if (await showCustomConfirm("Eliminare il ticket?")) { await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); fetchServerLog(); } }
+
+        document.getElementById('luggageForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const barcodeVal = document.getElementById('barcode').value.trim();
+            const item = {
+                barcode: barcodeVal,
+                guest: document.getElementById('guestName').value,
+                room: document.getElementById('room').value,
+                pcs: document.getElementById('checkinNotes').value ? `${document.getElementById('pcs').value} (${document.getElementById('checkinNotes').value})` : document.getElementById('pcs').value,
+                type: 'LUGGAGE',
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'PENDING'
+            };
+            await send(item, this);
+        });
+
+        document.getElementById('moveForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const item = {
+                barcode: 'MOVE',
+                guest: document.getElementById('moveGuestName').value,
+                room: `${document.getElementById('moveFrom').value} → ${document.getElementById('moveTo').value}`,
+                pcs: document.getElementById('moveNotes').value || 'ROOM MOVE',
+                type: 'ROOM MOVE',
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'PENDING'
+            };
+            await send(item, this);
+        });
+
+        async function send(data, form) {
+            const enrichedData = {
+                ...data,
+                start: Date.now(),
+                barcode: (data.barcode && data.barcode !== '' && data.barcode !== 'MOVE') ? data.barcode : (data.barcode === 'MOVE' ? 'MOVE' : Math.floor(100000 + Math.random() * 900000).toString())
+            };
+
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(enrichedData)
+            });
+
+            form.reset();
+            if (document.getElementById('pcs')) document.getElementById('pcs').value = 1;
+            fetchServerLog();
+            document.getElementById('barcode').focus();
+        }
+
+        setInterval(fetchServerLog, 4000);
+        fetchServerLog();
+    </script>
+    <!-- Login Modal for Concierge Access -->
+    <div class="modal fade" id="conciergeLoginModal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content p-4 shadow-lg"
+                style="background: #111; border: 1px solid var(--gold); color: white;">
+                <h5 class="game-text text-center mb-4" style="color: var(--gold); letter-spacing: 2px;">ACCESSO
+                    CONCIERGE</h5>
+                <input type="password" id="conciergePin" class="form-control mb-4" maxlength="4" placeholder="****"
+                    style="background: #1a1a1a; border: 1px solid #333; color: var(--gold); text-align: center; letter-spacing: 5px; font-size: 1.5rem;"
+                    autocomplete="off">
+                <button class="btn w-100" onclick="verifyConciergeAccess()"
+                    style="border: 1px solid var(--gold); color: var(--gold); border-radius: 0;">ENTRA</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Error Toast -->
+    <div id="error-toast"
+        style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(20, 0, 0, 0.95); border: 1px solid #ff4444; color: #ff4444; padding: 15px 30px; border-radius: 4px; letter-spacing: 1px; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 5px 20px rgba(0,0,0,0.5);">
+        ACCESS DENIED
+    </div>
+
+
+    <script>
+        const conciergeModal = new bootstrap.Modal(document.getElementById('conciergeLoginModal'));
+
+        function openConciergeLogin() {
+            document.getElementById('conciergePin').value = '';
+            conciergeModal.show();
+            setTimeout(() => document.getElementById('conciergePin').focus(), 500);
+        }
+
+        async function verifyConciergeAccess() {
+            const code = document.getElementById('conciergePin').value;
+            if (code === "2040" || code === "2251") {
+                window.location.href = "Concierge.html";
+            } else {
+                try {
+                    const res = await fetch('/api/users/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pin: code })
+                    });
+                    const data = await res.json();
+                    if (data.success && (code === "2040" || code === "2251")) {
+                        window.location.href = "Concierge.html";
+                    } else {
+                        showError("CODICE ERRATO");
+                        document.getElementById('conciergePin').value = '';
+                    }
+                } catch (e) {
+                    if (code === "2040" || code === "2251") window.location.href = "Concierge.html";
+                    else {
+                        showError("CODICE ERRATO");
+                        document.getElementById('conciergePin').value = '';
+                    }
+                }
+            }
+        }
+
+        function showError(msg) {
+            const toast = document.getElementById('error-toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        document.getElementById('conciergePin').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyConciergeAccess();
+        });
+    </script>
+</body>
+
+</html>

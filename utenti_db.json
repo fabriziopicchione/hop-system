@@ -1,0 +1,20 @@
+[
+  {
+    "nome": "Admin",
+    "cognome": "",
+    "role": "",
+    "codice": "2251"
+  },
+  {
+    "nome": "Marco",
+    "cognome": "Rossi",
+    "role": "BellMan",
+    "codice": "2144"
+  },
+  {
+    "nome": "Luca",
+    "cognome": "Rossi",
+    "role": "BellMan",
+    "codice": "2020"
+  }
+]
