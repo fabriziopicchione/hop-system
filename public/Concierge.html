@@ -128,7 +128,7 @@
         let audioCtx;
         let isFirstLoad = true;
         const seenTickets = new Set();
-        let audioEnabled = false;
+        let audioEnabled = true;
 
         function toggleAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -168,7 +168,11 @@
 
         // Try to enable on click anywhere if not enabled
         document.addEventListener('click', () => {
-            if (!audioEnabled) toggleAudio();
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
         }, { once: true });
 
         function playSound(type) {
