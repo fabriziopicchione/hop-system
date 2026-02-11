@@ -14,13 +14,13 @@
 <body>
     <div class="container-fluid px-4 mt-3">
         <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-4">
-            <h4 class="mb-0 d-flex align-items-center" style="letter-spacing: 3px;">
+            <h4 class="mb-0 d-flex align-items-center text-warning" style="letter-spacing: 3px;">
                 <img src="images/logo-hop.png" alt="Logo" style="height: 40px; margin-right: 15px; border-radius: 5px;">
                 H.O.P. CONCIERGE
             </h4>
             <div class="d-flex gap-2">
-                <button id="soundBtn" class="btn btn-outline-danger btn-sm px-3 fw-bold" onclick="toggleAudio()">
-                    <i class="fas fa-volume-mute"></i>
+                <button id="soundBtn" class="btn btn-outline-success btn-sm px-3 fw-bold" onclick="toggleAudio()">
+                    <i class="fas fa-volume-up"></i>
                 </button>
                 <button class="btn btn-warning btn-sm px-3 fw-bold" onclick="openManualModal()">+ INSERIMENTO
                     MANUALE</button>
@@ -326,7 +326,15 @@
                 const today = new Date().toISOString().split('T')[0];
                 const resA = await fetch(`${ARCHIVE_URL}?date=${today}`);
                 const hist = await resA.json();
-                document.getElementById('today-deliveries-body').innerHTML = hist.reverse().map(i => `<tr><td>${i.time}</td><td><span class="text-warning fw-bold">${i.barcode || '-'}</span></td><td>${i.guest}</td><td>${i.room}</td><td>${i.pcs}</td><td>${i.user} (${i.durata || ''})</td></tr>`).join('');
+
+                const searchTerm = document.getElementById('searchDeliveries').value.toLowerCase();
+                const filteredHist = hist.filter(i =>
+                    (i.guest && i.guest.toLowerCase().includes(searchTerm)) ||
+                    (i.room && i.room.toString().includes(searchTerm)) ||
+                    (i.barcode && i.barcode.toString().includes(searchTerm))
+                );
+
+                document.getElementById('today-deliveries-body').innerHTML = filteredHist.reverse().map(i => `<tr><td>${i.time}</td><td><span class="text-warning fw-bold">${i.barcode || '-'}</span></td><td>${i.guest}</td><td>${i.room}</td><td>${i.pcs}</td><td>${i.user} (${i.durata || ''})</td></tr>`).join('');
             } catch (e) { }
         }
 
