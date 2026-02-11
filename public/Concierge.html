@@ -19,6 +19,9 @@
                 H.O.P. CONCIERGE
             </h4>
             <div class="d-flex gap-2">
+                <button id="soundBtn" class="btn btn-outline-danger btn-sm px-3 fw-bold" onclick="enableAudio()">
+                    <i class="fas fa-volume-mute"></i>
+                </button>
                 <button class="btn btn-warning btn-sm px-3 fw-bold" onclick="openManualModal()">+ INSERIMENTO
                     MANUALE</button>
                 <a href="deposit.html" class="btn btn-outline-light btn-sm px-3 fw-bold"
@@ -28,6 +31,7 @@
         </div>
         <div id="luggage-list" class="d-flex flex-wrap gap-4"></div>
 
+        <!-- ... (thermal print area omitted) ... -->
         <div id="thermal-print-area">
             <div style="text-align:center;"><b>HOP - Rome Cavalieri</b></div>
             <div id="print-content" style="text-align:center;"></div>
@@ -122,23 +126,50 @@
 
         // Sound & Notification Context
         let audioCtx;
+        let isFirstLoad = true;
         const seenTickets = new Set();
+        let audioEnabled = false;
 
-        // Initialize Audio & Notifications on first user interaction
-        document.addEventListener('click', () => {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+        function enableAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
                 Notification.requestPermission();
             }
+
+            audioEnabled = true;
+            updateSoundIcon();
+
+            // Play a silent test sound to unlock mobile audio
+            const buffer = audioCtx.createBuffer(1, 1, 22050);
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
+        }
+
+        function updateSoundIcon() {
+            const btn = document.getElementById('soundBtn');
+            const icon = btn.querySelector('i');
+            if (audioEnabled) {
+                btn.classList.remove('btn-outline-danger');
+                btn.classList.add('btn-outline-success');
+                icon.className = 'fas fa-volume-up';
+            } else {
+                btn.classList.remove('btn-outline-success');
+                btn.classList.add('btn-outline-danger');
+                icon.className = 'fas fa-volume-mute';
+            }
+        }
+
+        // Try to enable on click anywhere if not enabled
+        document.addEventListener('click', () => {
+            if (!audioEnabled) enableAudio();
         }, { once: true });
 
         function playSound(type) {
-            if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!audioCtx || audioCtx.state === 'suspended') return;
 
             const output = audioCtx.createGain();
             output.connect(audioCtx.destination);
@@ -160,7 +191,7 @@
                 osc.stop(now + 0.2);
             }
             else if (type === 'success') {
-                // "Chime" - Ascending Major Triad
+                // "Chime"
                 const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
                 notes.forEach((freq, i) => {
                     const osc = audioCtx.createOscillator();
@@ -238,7 +269,7 @@
                 const tickets = await resL.json();
 
                 // Check for new tickets
-                if (seenTickets.size > 0) {
+                if (!isFirstLoad) {
                     let hasNew = false;
                     tickets.forEach(t => {
                         if (!seenTickets.has(t._id)) {
@@ -252,6 +283,7 @@
                 // Update seen set
                 seenTickets.clear();
                 tickets.forEach(t => seenTickets.add(t._id));
+                isFirstLoad = false;
 
                 document.getElementById('luggage-list').innerHTML = tickets.map(t => {
                     const isWorking = t.status === 'DELIVERING';
