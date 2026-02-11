@@ -130,23 +130,26 @@
         const seenTickets = new Set();
         let audioEnabled = false;
 
-        function enableAudio() {
+        function toggleAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                Notification.requestPermission();
+            audioEnabled = !audioEnabled;
+
+            if (audioEnabled) {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                    Notification.requestPermission();
+                }
+
+                // Play a silent test sound to unlock mobile audio
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start(0);
             }
-
-            audioEnabled = true;
             updateSoundIcon();
-
-            // Play a silent test sound to unlock mobile audio
-            const buffer = audioCtx.createBuffer(1, 1, 22050);
-            const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-            source.connect(audioCtx.destination);
-            source.start(0);
         }
 
         function updateSoundIcon() {
@@ -165,7 +168,7 @@
 
         // Try to enable on click anywhere if not enabled
         document.addEventListener('click', () => {
-            if (!audioEnabled) enableAudio();
+            if (!audioEnabled) toggleAudio();
         }, { once: true });
 
         function playSound(type) {
@@ -278,6 +281,17 @@
                         }
                     });
                     if (hasNew) playSound('new');
+
+                    // Detect Removed (Completed Remotely)
+                    let hasRemoved = false;
+                    const currentIds = new Set(tickets.map(t => t._id));
+                    for (const id of seenTickets) {
+                        if (!currentIds.has(id)) {
+                            hasRemoved = true;
+                            break;
+                        }
+                    }
+                    if (hasRemoved) playSound('success');
                 }
 
                 // Update seen set
