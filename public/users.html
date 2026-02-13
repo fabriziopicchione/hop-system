@@ -172,7 +172,7 @@
                 allUsers = await res.json();
                 document.getElementById('userTableBody').innerHTML = allUsers.map((u, i) => `
                 <tr>
-                    <td>${u.nome}</td><td>${u.cognome}</td><td><span class="badge-role">${u.role}</span></td>
+                    <td>${u.nome}</td><td>${u.cognome}</td><td><span class="badge-role">${u.ruolo}</span></td>
                     <td class="gold-text fw-bold">${u.codice}</td>
                     <td class="text-end"><span class="action-icon" onclick="openEdit(${i})">⚙️</span></td>
                 </tr>`).join('');
@@ -183,7 +183,7 @@
         async function addUser() {
             const nome = document.getElementById('userNome').value.trim();
             const cognome = document.getElementById('userCognome').value.trim();
-            const role = document.getElementById('userRole').value;
+            const ruolo = document.getElementById('userRole').value;
             const codice = document.getElementById('userPin').value.trim();
 
             if (!nome || !cognome || !codice) {
@@ -191,7 +191,7 @@
                 return;
             }
 
-            const data = { nome, cognome, role, codice };
+            const data = { nome, cognome, ruolo, codice };
 
             try {
                 const response = await fetch(USERS_API, {
@@ -218,7 +218,7 @@
             document.getElementById('editUserId').value = u._id;
             document.getElementById('editNome').value = u.nome;
             document.getElementById('editCognome').value = u.cognome;
-            document.getElementById('editRole').value = u.role;
+            document.getElementById('editRole').value = u.ruolo;
             document.getElementById('editPin').value = u.codice;
             modal.show();
         }
@@ -228,7 +228,7 @@
             const data = {
                 nome: document.getElementById('editNome').value,
                 cognome: document.getElementById('editCognome').value,
-                role: document.getElementById('editRole').value,
+                ruolo: document.getElementById('editRole').value,
                 codice: document.getElementById('editPin').value
             };
 
@@ -259,7 +259,7 @@
             loadUsers();
         }
 
-        loadUsers();
+        loadUser
     </script>
 </body>
 
