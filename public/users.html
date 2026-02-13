@@ -232,10 +232,23 @@
                 codice: document.getElementById('editPin').value
             };
 
-            await fetch(`${USERS_API}/${id}`, { method: 'DELETE' });
-            await fetch(USERS_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-            modal.hide();
-            loadUsers();
+            try {
+                const response = await fetch(`${USERS_API}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    modal.hide();
+                    loadUsers();
+                } else {
+                    await showCustomAlert("Errore durante l'aggiornamento.");
+                }
+            } catch (error) {
+                console.error("Errore di rete:", error);
+                await showCustomAlert("Errore di connessione.");
+            }
         }
 
         async function deleteUser() {
