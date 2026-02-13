@@ -1,9 +1,26 @@
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 exports.getAll = async (req, res) => {
     try {
         const users = await User.find();
         res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.debug = async (req, res) => {
+    try {
+        const collections = await mongoose.connection.db.listCollections().toArray();
+        const count = await User.countDocuments();
+        const dbName = mongoose.connection.name;
+        res.json({
+            dbName,
+            collections: collections.map(c => c.name),
+            userCount: count,
+            sampleUsers: await User.find().limit(3)
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
