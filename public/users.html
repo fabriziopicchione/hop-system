@@ -169,15 +169,25 @@
         async function loadUsers() {
             try {
                 const res = await fetch(USERS_API);
+                if (!res.ok) throw new Error("Errore nel caricamento utenti: " + res.statusText);
+
                 allUsers = await res.json();
+
+                if (!Array.isArray(allUsers)) {
+                    throw new Error("Risposta API non valida (non è un array)");
+                }
+
                 document.getElementById('userTableBody').innerHTML = allUsers.map((u, i) => `
                 <tr>
-                    <td>${u.nome}</td><td>${u.cognome}</td><td><span class="badge-role">${u.ruolo}</span></td>
+                    <td>${u.nome}</td><td>${u.cognome}</td><td><span class="badge-role">${u.ruolo || u.role || 'N/A'}</span></td>
                     <td class="gold-text fw-bold">${u.codice}</td>
                     <td class="text-end"><span class="action-icon" onclick="openEdit(${i})">⚙️</span></td>
                 </tr>`).join('');
                 document.getElementById('userPin').value = Math.floor(1000 + Math.random() * 9000);
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+                await showCustomAlert("Errore caricamento: " + e.message);
+            }
         }
 
         async function addUser() {
